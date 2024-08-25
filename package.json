@@ -12,9 +12,7 @@
     "@types/uuid": "^9.0.8",
     "prettier": "3.3.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.2.2",
-    "format:write": "prettier . --write",
-    "format:check": "prettier . --check"
+    "typescript": "^5.2.2"
   },
   "scripts": {
     "build": "npx tsc --build",
@@ -24,7 +22,9 @@
     "stop-playground": "docker compose -p playground -f ./docker/docker-compose.playground.yml down",
     "dev": "docker compose -p dev -f ./docker/docker-compose.dev.yml down && docker compose -p dev -f ./docker/docker-compose.dev.yml up --build",
     "dev:watch-api": "nodemon --config nodemon-api.json",
-    "dev:watch-jobs": "nodemon --config nodemon-jobs.json"
+    "dev:watch-jobs": "nodemon --config nodemon-jobs.json",
+    "format:write": "prettier . --write",
+    "format:check": "prettier . --check"
   },
   "dependencies": {
     "@types/express": "^4.17.17",
