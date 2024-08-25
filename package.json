@@ -12,7 +12,9 @@
     "@types/uuid": "^9.0.8",
     "prettier": "3.3.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "format:write": "prettier . --write",
+    "format:check": "prettier . --check"
   },
   "scripts": {
     "build": "npx tsc --build",
