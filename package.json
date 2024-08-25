@@ -28,7 +28,8 @@
     "dev:watch-api": "nodemon --config nodemon-api.json",
     "dev:watch-jobs": "nodemon --config nodemon-jobs.json",
     "format:write": "prettier . --write",
-    "format:check": "prettier . --check"
+    "format:check": "prettier . --check",
+    "lint": "eslint --fix ."
   },
   "dependencies": {
     "@types/express": "^4.17.17",
