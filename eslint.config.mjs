@@ -9,16 +9,18 @@ export default [
     languageOptions: {
       parser: tsParser,
       sourceType: "module",
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+        ...globals.node, // Include Node.js globals
+      },
     },
-    // Include the recommended configurations directly
     plugins: {
       "@typescript-eslint": tseslint,
     },
     rules: {
       ...pluginJs.configs.recommended.rules,
       ...tseslint.configs.recommended.rules,
-      "@typescript-eslint/no-explicit-any": "off", // Disable the no-explicit-any rule
+      "@typescript-eslint/no-explicit-any": "off",
     },
   },
   {
