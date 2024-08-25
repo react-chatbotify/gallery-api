@@ -94,14 +94,14 @@ const runSyncThemesFromGitHub = async () => {
       try {
         const metaData = await fetchMetaJson(themeId);
         if (metaData) {
-          const newTheme = await Theme.create(
+          /*const newTheme = await Theme.create(
             {
               id: themeId,
               name: metaData.name,
               description: metaData.description,
             },
             { transaction },
-          );
+          );*/
 
           await ThemeVersion.create(
             {

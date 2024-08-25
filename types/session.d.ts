@@ -9,6 +9,7 @@ declare module "express-session" {
 
 declare module "express-serve-static-core" {
   interface Request {
+    // eslint-disable-next-line no-undef
     userData: UserData;
   }
 }

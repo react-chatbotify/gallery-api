@@ -3,7 +3,7 @@
  */
 const runProcessThemeQueue = async () => {
   // todo: grab all themes from ThemeJob table
-  const themeJobs = [];
+  //const themeJobs = [];
 
   // todo: de-dupe (i.e. if the same theme is both created and deleted, keep the latest one by timestamp)
 
@@ -28,6 +28,7 @@ const runProcessThemeQueue = async () => {
  * @param themes themes to determine files to add
  */
 const fetchFilesToAdd = async (themes: string[]) => {
+  console.log(themes)
   // todo: grab all entries from ThemeJob table
   // todo: fetch files from minio for each theme in the table
   // todo: generate meta.json from name, description etc
@@ -40,6 +41,7 @@ const fetchFilesToAdd = async (themes: string[]) => {
  * @param themes themes to determine files to delete
  */
 const fetchFilesToDelete = async (themes: string[]) => {
+  console.log(themes)
   // todo: grab all entries from ThemeJob table
   // todo: fetch files from minio for each theme in the table
   // todo: return a list of folders/files to delete in the github themes repository

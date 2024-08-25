@@ -56,7 +56,10 @@ const getUserThemes = async (req: Request, res: Response) => {
         },
       });
       return res.json(themes);
-    } catch {}
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch themes" });
+      console.log(error)
+    }
   }
 
   // all other cases unauthorized
@@ -90,7 +93,10 @@ const getUserFavoriteThemes = async (req: Request, res: Response) => {
         include: [Theme],
       });
       res.json(userFavoriteThemes);
-    } catch {}
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch user favorite themes" });
+      console.log(error)
+    }
   }
 
   // all other cases unauthorized

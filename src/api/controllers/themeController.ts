@@ -41,6 +41,7 @@ const getThemes = async (req: Request, res: Response) => {
     res.json(themes);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch themes" });
+    console.log(error)
   }
 };
 
@@ -75,7 +76,7 @@ const getThemeVersions = async (req: Request, res: Response) => {
  */
 const publishTheme = async (req: Request, res: Response) => {
   const userData = req.userData;
-  const { theme_id, name, description, version } = req.body;
+  const { theme_id, name, description } = req.body;
 
   // todo: perform checks in the following steps:
   // 1) if theme_id already exist and user is not author, 403

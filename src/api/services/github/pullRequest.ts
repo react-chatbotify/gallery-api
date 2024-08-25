@@ -1,3 +1,4 @@
+/*
 // ignore this entire file for now, unused but will re-look later
 import axios, { AxiosRequestConfig } from "axios";
 import { readFileSync } from "fs";
@@ -81,10 +82,12 @@ async function createPullRequest() {
   }
 }
 
-// const branchCreated = await createBranch();
-// if (branchCreated) {
-// 	const fileAdded = await addFile();
-// 	if (fileAdded) {
-// 		await createPullRequest();
-// 	}
-// }
+const branchCreated = await createBranch();
+if (branchCreated) {
+  const fileAdded = await addFile();
+  if (fileAdded) {
+    await createPullRequest();
+  }
+}
+
+*/
