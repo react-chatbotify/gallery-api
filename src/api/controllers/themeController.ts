@@ -41,7 +41,7 @@ const getThemes = async (req: Request, res: Response) => {
     res.json(themes);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch themes" });
-    console.log(error)
+    console.log(error);
   }
 };
 

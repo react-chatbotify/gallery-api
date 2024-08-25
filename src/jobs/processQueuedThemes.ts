@@ -28,7 +28,7 @@ const runProcessThemeQueue = async () => {
  * @param themes themes to determine files to add
  */
 const fetchFilesToAdd = async (themes: string[]) => {
-  console.log(themes)
+  console.log(themes);
   // todo: grab all entries from ThemeJob table
   // todo: fetch files from minio for each theme in the table
   // todo: generate meta.json from name, description etc
@@ -41,7 +41,7 @@ const fetchFilesToAdd = async (themes: string[]) => {
  * @param themes themes to determine files to delete
  */
 const fetchFilesToDelete = async (themes: string[]) => {
-  console.log(themes)
+  console.log(themes);
   // todo: grab all entries from ThemeJob table
   // todo: fetch files from minio for each theme in the table
   // todo: return a list of folders/files to delete in the github themes repository

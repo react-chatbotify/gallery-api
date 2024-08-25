@@ -41,7 +41,9 @@ const fetchTokensWithCode = async (
       encrypt(tokenResponse.access_token),
       { EX: 27900 },
     );
-  } catch (error) {console.log(error)}
+  } catch (error) {
+    console.log(error);
+  }
 
   return tokenResponse;
 };
@@ -170,7 +172,7 @@ const getOrCreateUser = async (
 
     return newUser;
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return null;
   }
 };
