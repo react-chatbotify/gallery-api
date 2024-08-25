@@ -4,15 +4,16 @@
 </p>
 
 ## Table of Contents
-* [Introduction](#introduction)
-* [Features](#features)
-* [Technologies](#technologies)
-* [Quickstart](#quickstart)
-* [Documentation](#documentation)
-* [Team](#team)
-* [Contributing](#contributing)
-* [Support](#support)
-* [Attributions](#attributions)
+
+- [Introduction](#introduction)
+- [Features](#features)
+- [Technologies](#technologies)
+- [Quickstart](#quickstart)
+- [Documentation](#documentation)
+- [Team](#team)
+- [Contributing](#contributing)
+- [Support](#support)
+- [Attributions](#attributions)
 
 ### Introduction
 
@@ -27,7 +28,9 @@ Apart from a handful of background jobs, the Gallery API largely supports reques
 For more information on what this project delivers, you may wish to check out the implementation section of the [**Developer Guide**](https://github.com/tjtanjin/react-chatbotify-gallery-api/blob/main/docs/DeveloperGuide.md).
 
 ### Technologies
+
 Technologies used by React ChatBotify Gallery API are as below:
+
 #### Done with:
 
 <p align="center">
@@ -44,14 +47,17 @@ Typescript
 </p>
 
 #### Project Repository
+
 - https://github.com/tjtanjin/react-chatbotify-gallery-api
 
 ### Team
-* [Tan Jin](https://github.com/tjtanjin)
+
+- [Tan Jin](https://github.com/tjtanjin)
 
 // todo: the team will be expanded once members are confirmed
 
 ### Contributing
+
 If you are looking to contribute to the project, you may find the [**Developer Guide**](https://github.com/tjtanjin/react-chatbotify-gallery-api/blob/main/docs/DeveloperGuide.md) useful.
 
 In general, the forking workflow is encouraged and you may open a pull request with clear descriptions on the changes and what they are intended to do (enhancement, bug fixes etc). Alternatively, you may simply raise bugs or suggestions by opening an [**issue**](https://github.com/tjtanjin/react-chatbotify-gallery-api/issues) or raising it up on [**discord**](https://discord.gg/6R4DK4G5Zh).
@@ -59,4 +65,5 @@ In general, the forking workflow is encouraged and you may open a pull request w
 Note: Templates have been created for pull requests and issues to guide you in the process.
 
 ### Support
+
 If there are any questions pertaining to the application itself (usage or implementation wise), you may create an [**issue**](https://github.com/tjtanjin/react-chatbotify-gallery-api/issues), raise it up on [**discord**](https://discord.gg/6R4DK4G5Zh), or drop me an email at: **cjtanjin@gmail.com.**

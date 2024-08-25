@@ -5,20 +5,21 @@
 
 ## Table of Contents
 
-* [Introduction](#introduction)
-* [Navigating this Developer Guide](#navigating-this-developer-guide)
-* [Design](#design)
-* [Implementation](#implementation)
-* [Project Management](#project-management)
-* [Code Documentation](#code-documentation)
-* [Testing](#testing)
-* [Final Notes](#final-notes)
+- [Introduction](#introduction)
+- [Navigating this Developer Guide](#navigating-this-developer-guide)
+- [Design](#design)
+- [Implementation](#implementation)
+- [Project Management](#project-management)
+- [Code Documentation](#code-documentation)
+- [Testing](#testing)
+- [Final Notes](#final-notes)
 
 <div  style="page-break-after: always;"></div>
 
 ## Introduction
 
-Welcome to the Developer Guide for the React Chatbotify Gallery API project. Before diving into this guide, ensure you have gone through the project [*README*](https://github.com/your-repo/react-chatbotify-gallery-website/blob/main/README.md) for an overview. This guide assumes you have a **basic understanding** of the following tools & technologies (or are **at least able to read up and learn about them**):
+Welcome to the Developer Guide for the React Chatbotify Gallery API project. Before diving into this guide, ensure you have gone through the project [_README_](https://github.com/your-repo/react-chatbotify-gallery-website/blob/main/README.md) for an overview. This guide assumes you have a **basic understanding** of the following tools & technologies (or are **at least able to read up and learn about them**):
+
 - [**NodeJS**](https://nodejs.org/en)
 - [**ExpressJS**](https://expressjs.com/)
 - [**TypeScript**](https://www.typescriptlang.org/)
@@ -36,11 +37,11 @@ In addition, you should also have a brief familiarity with [**React ChatBotify**
 
 To facilitate your reading, take note of the following syntaxes used throughout this guide:
 
-| Syntax       | Description                                                                                   |
-|--------------|-----------------------------------------------------------------------------------------------|
-| `Code`       | Denotes functions, components, or code-related references (e.g., `App`, `useEffect`)          |
-| *Italics*    | Refers to folder or file names (e.g., *App.js*, *components*)                                 |
-| **Bold**     | Highlights important keywords or concepts                                                     |
+| Syntax    | Description                                                                          |
+| --------- | ------------------------------------------------------------------------------------ |
+| `Code`    | Denotes functions, components, or code-related references (e.g., `App`, `useEffect`) |
+| _Italics_ | Refers to folder or file names (e.g., _App.js_, _components_)                        |
+| **Bold**  | Highlights important keywords or concepts                                            |
 
 <div  style="page-break-after: always;"></div>
 
@@ -49,30 +50,31 @@ To facilitate your reading, take note of the following syntaxes used throughout 
 Setting up the project is relatively simple with [**Docker**](https://www.docker.com/). While it is technically feasible to setup the services of the project individually, it requires significantly more time and effort so you're **strongly discouraged** from doing so. The rest of this guide will assume that you have docker installed and have basic familiarity with [**Docker Compose**](https://docs.docker.com/compose/).
 
 To setup the project locally, follow the steps below:
-1) Fork the [project repository](https://github.com/tjtanjin/react-chatbotify-gallery-api).
-2) Clone the **forked project** into your desired directory with:
-    ```
-    git clone {the-forked-project}.git
-    ```
-3) Next, `cd` into the project and run the following command:
-    ```
-    npm run dev
-    ```
-4) The API server will be available on **http://localhost:3102**, and you may quickly verify that it is running by visiting the endpoint for fetching themes: http://localhost:3102/api/v1/themes?pageSize=30&pageNum=1
 
-**Note:** For internal developers, you will be provided with a *.env.development* file which contains the variables for for the development environment. Notably, you'll be able to interact with the **GitHub Application** meant for development. The development environment is also setup to only **strictly** accept requests from a frontend served at **localhost:3000**. Thus, if you're keen to setup the frontend project, bear in mind to check the port number before calling the backend. For public contributors, you will have to populate the values in *.env.template* from scratch. If you require assistance with that however, feel free to **reach out**!
+1. Fork the [project repository](https://github.com/tjtanjin/react-chatbotify-gallery-api).
+2. Clone the **forked project** into your desired directory with:
+   ```
+   git clone {the-forked-project}.git
+   ```
+3. Next, `cd` into the project and run the following command:
+   ```
+   npm run dev
+   ```
+4. The API server will be available on **http://localhost:3102**, and you may quickly verify that it is running by visiting the endpoint for fetching themes: http://localhost:3102/api/v1/themes?pageSize=30&pageNum=1
+
+**Note:** For internal developers, you will be provided with a _.env.development_ file which contains the variables for for the development environment. Notably, you'll be able to interact with the **GitHub Application** meant for development. The development environment is also setup to only **strictly** accept requests from a frontend served at **localhost:3000**. Thus, if you're keen to setup the frontend project, bear in mind to check the port number before calling the backend. For public contributors, you will have to populate the values in _.env.template_ from scratch. If you require assistance with that however, feel free to **reach out**!
 
 ## Design
 
 ### Overview
 
-At the root of the project, there are three key directories to be aware of: *config*, *docker*, and *src*. Other files and folders follow typical conventions for such projects and will not be covered in this guide.
+At the root of the project, there are three key directories to be aware of: _config_, _docker_, and _src_. Other files and folders follow typical conventions for such projects and will not be covered in this guide.
 
-The *config* directory, as the name implies, contains configuration files. Within this directory, there are three subfolders: *env*, *redis* and *nginx*. The *env* and *redis* subfolder holds environment-specific variables, while the *nginx* subfolder contains a shared NGINX configuration file.
+The _config_ directory, as the name implies, contains configuration files. Within this directory, there are three subfolders: _env_, _redis_ and _nginx_. The _env_ and _redis_ subfolder holds environment-specific variables, while the _nginx_ subfolder contains a shared NGINX configuration file.
 
-The *docker* directory includes all files related to Docker. Specifically, it contains Dockerfiles for the api and jobs services, along with Docker Compose files that orchestrate the entire setup. These files are also environment-specific.
+The _docker_ directory includes all files related to Docker. Specifically, it contains Dockerfiles for the api and jobs services, along with Docker Compose files that orchestrate the entire setup. These files are also environment-specific.
 
-Lastly, the *src* directory contains all of the application code. It is divided into two subdirectories: *api* and *jobs*, corresponding to the two custom services in the project (as indicated by the separate Dockerfiles). The internal structure of *api* and *jobs* is straightforward and follows common patterns. It is assumed that developers have the necessary expertise to navigate and understand the project structure independently. Therefore, we will focus on discussing the project architecture.
+Lastly, the _src_ directory contains all of the application code. It is divided into two subdirectories: _api_ and _jobs_, corresponding to the two custom services in the project (as indicated by the separate Dockerfiles). The internal structure of _api_ and _jobs_ is straightforward and follows common patterns. It is assumed that developers have the necessary expertise to navigate and understand the project structure independently. Therefore, we will focus on discussing the project architecture.
 
 ### Architecture
 
@@ -84,7 +86,7 @@ We will briefly describe each of these services below.
 
 #### Nginx
 
-The NGINX service acts as the entry point for our backend services. Configurations for NGINX can be found in the *config/nginx* folder. NGINX functions as a load balancer, distributing incoming requests between two API instances (referred to as **api1** and **api2**). If one API instance fails to respond, NGINX will reroute the request to the other instance.
+The NGINX service acts as the entry point for our backend services. Configurations for NGINX can be found in the _config/nginx_ folder. NGINX functions as a load balancer, distributing incoming requests between two API instances (referred to as **api1** and **api2**). If one API instance fails to respond, NGINX will reroute the request to the other instance.
 
 #### API
 
@@ -92,13 +94,15 @@ The API service handles user requests and interacts with other services to perfo
 
 #### Redis
 
-The Redis service is responsible for caching user sessions, user data, and encrypted access tokens. Configuration files for Redis can be found in the *config/redis* folder. There are two Redis instances in the project:
+The Redis service is responsible for caching user sessions, user data, and encrypted access tokens. Configuration files for Redis can be found in the _config/redis_ folder. There are two Redis instances in the project:
+
 - **redis-session:** Caches user sessions and is persistent, meaning data is retained across restarts.
 - **redis-ephemeral:** Caches user data and encrypted access tokens. Data is not retained across restarts, which is acceptable since the refresh token can be used to regenerate this information.
 
 #### MySQL
 
 The MySQL service functions as the primary database, storing essential user and theme-related data. The following tables are present:
+
 - Users
 - UserRefreshTokens
 - Themes
@@ -107,7 +111,7 @@ The MySQL service functions as the primary database, storing essential user and 
 - FavoriteThemes
 - LinkedAuthProviders
 
-The schema for these tables is located in *src/api/databases/sql/models*. Detailed explanations of these tables will be provided later in the guide as they pertain to specific implementations.
+The schema for these tables is located in _src/api/databases/sql/models_. Detailed explanations of these tables will be provided later in the guide as they pertain to specific implementations.
 
 #### Minio
 
@@ -116,6 +120,7 @@ The MinIO service serves as a temporary storage bucket for theme-related files. 
 #### Jobs
 
 There are currently two background jobs:
+
 - **Sync Themes From GitHub:** Runs every 24 hours to ensure the themes data in MySQL is synchronized with the data on GitHub.
 - **Process Queued Themes:** Runs every 15 minutes to handle the processing of themes queued for creation or deletion.
 
@@ -128,6 +133,7 @@ On top of serving as the backend for the Gallery website, the Gallery API also p
 ### Nginx Proxies
 
 If you've read the **Design** section above, you will be aware that there is an nginx service that proxies requests to 2 API instances. The configurations for nginx are provided below:
+
 ```
 events {}
 
@@ -148,7 +154,7 @@ http {
 			proxy_set_header Host $host;
 			proxy_set_header X-Real-IP $remote_addr;
 			proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-			
+
 			# forward the protocol forwarded by the host nginx
 			# note that the gallery platform sits behind 2 proxies
       proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
@@ -156,6 +162,7 @@ http {
 	}
 }
 ```
+
 Notice that if an API instance returns 500 error codes, nginx will attempt to make a request to the other API instance instead. This is so if an instance unexpectedly crashes, the other instance can continue to serve requests normally as remedy work is done on the other instance.
 
 Apart from that, there's another important configuration: `proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;`. This was previously misconfigured as `proxy_set_header X-Forwarded-Proto $scheme;` and took over a day to debug. The reason why `$scheme` **will not work** is because there is actually another nginx server on the host machine as well. The host nginx actually does a proxy pass to the docker nginx with **http** and thus, if you use `$scheme`, it will be **http** instead.
@@ -172,12 +179,13 @@ Every 3 months, a session expires and users will be required to login again. Use
 
 The application **does not store username or passwords**. Instead, it relies fully on third-party OAuth providers for authenticating users. This allows us to avoid the hassle of having to deal with storage of user passwords, and we can solely focus on delivering the core features of the application.
 
-To flexibly support multiple providers, a set of common fields are defined within *src/api/interfaces/UserProviderData*. Each provider also implements the following set of functions which can be found in their respective files:
+To flexibly support multiple providers, a set of common fields are defined within _src/api/interfaces/UserProviderData_. Each provider also implements the following set of functions which can be found in their respective files:
+
 - getUserData,
 - getUserTokensWithCode,
 - getUserTokensWithRefresh
 
-Thus, to add additional providers, it is as simple as creating a new file and implementing these functions before introducing them into *src/api/services/authentication*.
+Thus, to add additional providers, it is as simple as creating a new file and implementing these functions before introducing them into _src/api/services/authentication_.
 
 ### Routes & Endpoints
 
@@ -220,16 +228,19 @@ The progress of the project is tracked using [**GitHub Projects**](https://githu
 If you are looking to contribute, you are strongly encouraged to take up **good-first-issues** if it is your first time working on the project. If you're not part of the project team but feel confident in taking up issues prefixed with [Task], still feel free to comment and indicate your interest.
 
 ### Forking Workflow
+
 This project adopts the [**Forking Workflow**](https://www.atlassian.com/git/tutorials/comparing-workflows/forking-workflow). In short, here are the steps required:
-1) Fork the repository
-2) Clone the forked repository to your local device
-3) Make your code changes
-4) Push to your forked remote repository
-5) Open a pull request from your forked repository to the upstream repository (i.e. the main repository)
+
+1. Fork the repository
+2. Clone the forked repository to your local device
+3. Make your code changes
+4. Push to your forked remote repository
+5. Open a pull request from your forked repository to the upstream repository (i.e. the main repository)
 
 In addition, developers should fill up the pull requests template diligently. This ensures that changes are well-documented and reviewed before merging.
 
 ### Commit Messages
+
 This project adopts [**Conventional Commits**](https://www.conventionalcommits.org/en/v1.0.0/), with a minor difference that **the first word after the commit type is always capitalised**. For example, notice how "A" in "Add" is capitalised in this commit message: `feat: Add initial theme builder layout`.
 
 ## Code Documentation
@@ -248,6 +259,7 @@ const getUserTokensWithRefresh = async (refreshToken: string) => {
   // Implementation...
 }
 ```
+
 The above shows an example code comment for a function that fetches new user tokens with the refresh token.
 
 Finally, any leftover tasks or areas in the code to be revisited should be flagged with a comment like the one below:

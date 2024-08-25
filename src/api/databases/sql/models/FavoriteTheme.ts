@@ -6,7 +6,7 @@ import User from "./User";
 /**
  * Association table between a user and a theme (user favorite theme).
  */
-class FavoriteTheme extends Model { }
+class FavoriteTheme extends Model {}
 
 FavoriteTheme.init({}, { sequelize, modelName: "FavoriteTheme" });
 
