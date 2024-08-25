@@ -134,11 +134,9 @@ const unpublishTheme = async (req: Request, res: Response) => {
 
     // if theme does not exist, cannot delete
     if (!theme) {
-      return res
-        .status(404)
-        .json({
-          error: "Failed to unpublish theme, the theme does not exist.",
-        });
+      return res.status(404).json({
+        error: "Failed to unpublish theme, the theme does not exist.",
+      });
     }
 
     // if theme exist and user is admin, can delete
