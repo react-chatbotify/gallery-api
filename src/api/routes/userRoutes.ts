@@ -1,10 +1,10 @@
 import express from "express";
 import {
-	addUserFavoriteTheme,
-	getUserFavoriteThemes,
-	getUserProfile,
-	getUserThemes,
-	removeUserFavoriteTheme
+  addUserFavoriteTheme,
+  getUserFavoriteThemes,
+  getUserProfile,
+  getUserThemes,
+  removeUserFavoriteTheme,
 } from "../controllers/userController";
 import checkUserSession from "../middleware/userSessionMiddleware";
 
@@ -23,7 +23,7 @@ router.get("/themes/favorited", checkUserSession, getUserFavoriteThemes);
 router.post("/themes/favorited", checkUserSession, addUserFavoriteTheme);
 
 // unfavorites a theme for user
-router.delete("/themes/favorited", checkUserSession, removeUserFavoriteTheme)
+router.delete("/themes/favorited", checkUserSession, removeUserFavoriteTheme);
 
 // todo: add an endpoint for users to attempt to claim theme ownership
 // required if a theme is on github but the author has never logged

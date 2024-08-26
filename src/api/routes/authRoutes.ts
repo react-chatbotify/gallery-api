@@ -1,7 +1,7 @@
 import express from "express";
 import {
-	handleCallback,
-	handleLoginProcess,
+  handleCallback,
+  handleLoginProcess,
 } from "../controllers/authController";
 
 const router = express.Router();

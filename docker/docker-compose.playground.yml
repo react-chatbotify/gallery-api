@@ -76,7 +76,7 @@ services:
     volumes:
       - redis-sessions-data-playground:/data
       - ./config/redis/redis.playground.conf:/usr/local/etc/redis/redis.conf:ro
-    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
     healthcheck:
       test: "exit 0"
 
@@ -116,13 +116,7 @@ services:
     networks:
       - core-network-playground
     healthcheck:
-      test:
-        [
-          "CMD",
-          "curl",
-          "-f",
-          "http://localhost:9000/minio/health/live"
-        ]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
       timeout: 20s
       retries: 3
@@ -146,7 +140,6 @@ volumes:
   mysql-data-playground:
   minio-data-playground:
   redis-sessions-data-playground:
-
 
 networks:
   nginx-network-playground:

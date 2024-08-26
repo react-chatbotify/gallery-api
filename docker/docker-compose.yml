@@ -75,7 +75,7 @@ services:
     volumes:
       - redis-sessions-data-prod:/data
       - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
-    command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
     healthcheck:
       test: "exit 0"
 
@@ -115,13 +115,7 @@ services:
     networks:
       - core-network-prod
     healthcheck:
-      test:
-        [
-          "CMD",
-          "curl",
-          "-f",
-          "http://localhost:9000/minio/health/live"
-        ]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
       timeout: 20s
       retries: 3
@@ -145,7 +139,6 @@ volumes:
   mysql-data-prod:
   minio-data-prod:
   redis-sessions-data-prod:
-
 
 networks:
   nginx-network-prod:

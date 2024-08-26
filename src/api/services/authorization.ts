@@ -8,9 +8,7 @@ import { UserData } from "../interfaces/UserData";
  * @returns true if user is admin, false otherwise
  */
 const checkIsAdminUser = (userData: UserData) => {
-	return userData.role === "ADMIN";
-}
-
-export {
-	checkIsAdminUser
+  return userData.role === "ADMIN";
 };
+
+export { checkIsAdminUser };
