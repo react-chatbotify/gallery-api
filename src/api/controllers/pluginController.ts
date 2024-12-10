@@ -78,12 +78,12 @@ const publishPlugin = async (req: Request, res: Response) => {
     fileName + crypto.randomBytes(20).toString('hex') + '.' + extension;
   try {
     await uploadBuffer('plugins-images', imgName, imgFile.buffer);
-    const imageURL = `${MINIO_URL}/plugins-images/${imgName}`;
+    const imageUrl = `${MINIO_URL}/plugins-images/${imgName}`;
 
     const plugin = await Plugin.create({
       name: name,
       description: description,
-      imageURL,
+      imageUrl,
       userId: userData.id,
       id: id,
     });
