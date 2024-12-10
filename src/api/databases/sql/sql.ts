@@ -21,7 +21,7 @@ const initializeDatabase = async () => {
 		// a primary instance is assigned to alter tables if necessary in development/playground
 		// not ideal, but works and good enough for now
 		if (process.env.NODE_ENV !== "production" && process.env.IS_PRIMARY) {
-			await sequelize.sync({ alter: true });
+			await sequelize.sync();
 		} else {
 			await sequelize.sync();
 		}

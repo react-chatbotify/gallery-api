@@ -3,6 +3,7 @@ import { Op } from "sequelize";
 import Theme from "../databases/sql/models/Theme";
 import ThemeJobQueue from "../databases/sql/models/ThemeJobQueue";
 import ThemeVersion from "../databases/sql/models/ThemeVersion";
+import { redisEphemeralClient } from "../databases/redis";
 import Logger from "../logger";
 import { checkIsAdminUser } from "../services/authorization";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/responseUtils";
@@ -21,29 +22,45 @@ const getThemes = async (req: Request, res: Response) => {
 	// default to no searches
 	const { pageSize = 30, pageNum = 1, searchQuery = "" } = req.query;
 
-	// construct clause for searching themes
-	const limit = parseInt(pageSize as string) || 30;
-	const offset = ((parseInt(pageNum as string) || 1) - 1) * limit;
-	const whereClause = searchQuery ? {
-		[Op.or]: [
-			{ name: { [Op.like]: `%${searchQuery}%` } },
-			{ description: { [Op.like]: `%${searchQuery}%` } }
-		]
-	} : {};
+	// construct unique cache key for query
+	const cacheKey = `${process.env.THEME_CACHE_PREFIX}:page:${pageNum}:size:${pageSize}:query:${searchQuery}`;
 
-	// fetch themes according to page size, page num and search query
 	try {
+		// check if cache contains results and return if so
+		const cachedData = await redisEphemeralClient.get(cacheKey);
+		if (cachedData) {
+			return sendSuccessResponse(res, 200, JSON.parse(cachedData), "Themes fetched successfully.");
+		}
+
+		// construct clause for searching themes
+		const limit = parseInt(pageSize as string) || 30;
+		const offset = ((parseInt(pageNum as string) || 1) - 1) * limit;
+		const whereClause = searchQuery ? {
+			[Op.or]: [
+				{ name: { [Op.like]: `%${searchQuery}%` } },
+				{ description: { [Op.like]: `%${searchQuery}%` } }
+			]
+		} : {};
+	
+		// fetch themes according to page size, page num and search query
 		const themes = await Theme.findAll({
 			where: whereClause,
 			limit,
-			offset
+			offset,
 		});
+	
+		// cache the results for 30 mins
+		await redisEphemeralClient.set(cacheKey, JSON.stringify(themes), { EX: 1800 });
 		sendSuccessResponse(res, 200, themes, "Themes fetched successfully.");
 	} catch (error) {
 		Logger.error("Error fetching themes:", error);
 		sendErrorResponse(res, 500, "Failed to fetch themes.");
 	}
 };
+
+
+
+
 
 /**
  * Retrieves all the published versions for a theme.
@@ -101,6 +118,13 @@ const publishTheme = async (req: Request, res: Response) => {
 			action: "CREATE"
 		});
 
+		// invalidate cache when themes are added
+		await redisEphemeralClient.keys(`${process.env.THEME_CACHE_PREFIX}:*`).then((keys) => {
+			keys.forEach(async (key) => {
+				await redisEphemeralClient.del(key);
+			});
+		});
+
 		// todo: push files into minio bucket with themeId for process queue job to pick up
 
 		sendSuccessResponse(res, 201, themeJobQueueEntry, "Themed queued for publishing.");
@@ -140,6 +164,13 @@ const unpublishTheme = async (req: Request, res: Response) => {
 		if (isAdminUser) {
 			// todo: allow admins to forcibly unpublish themes
 		}
+
+		// invalidate cache when themes are removed
+		await redisEphemeralClient.keys(`${process.env.THEME_CACHE_PREFIX}:*`).then((keys) => {
+			keys.forEach(async (key) => {
+				await redisEphemeralClient.del(key);
+			});
+		});
 
 		// todo: review how to handle unpublishing of themes, authors should not be allowed to delete themes anytime
 		// as there may be existing projects using their themes - perhaps separately have a support system for such action
