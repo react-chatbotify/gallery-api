@@ -28,10 +28,16 @@ Plugin.init(
       field: 'favorites_count',
     },
     // image url of the plugin
-    imageURL: {
+    imageUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      field: 'image_url',
+    },
+    // package url of the plugin
+    packageUrl: {
       type: DataTypes.STRING,
       allowNull: false,
-      field: 'image_url',
+      field: 'package_url',
     },
     // date when the plugin is created
     createdAt: {
