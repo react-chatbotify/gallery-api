@@ -6,6 +6,7 @@ interface ThemeMetaData {
 	github: string;
 	tags: string[];
 	version: string;
+	isFavorite?: boolean;
 }
 
 export {

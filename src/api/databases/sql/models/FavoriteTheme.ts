@@ -14,4 +14,7 @@ FavoriteTheme.init({}, { sequelize, modelName: "FavoriteTheme" });
 FavoriteTheme.belongsTo(User, { foreignKey: "userId" });
 FavoriteTheme.belongsTo(Theme, { foreignKey: "themeId" });
 
+User.belongsToMany(Theme, { through: FavoriteTheme, foreignKey: "userId" });
+Theme.belongsToMany(User, { through: FavoriteTheme, foreignKey: "themeId" });
+
 export default FavoriteTheme;

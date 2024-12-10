@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Op } from "sequelize";
+import FavoriteTheme from "../databases/sql/models/FavoriteTheme";
 import Theme from "../databases/sql/models/Theme";
 import ThemeJobQueue from "../databases/sql/models/ThemeJobQueue";
 import ThemeVersion from "../databases/sql/models/ThemeVersion";
@@ -9,17 +10,15 @@ import { checkIsAdminUser } from "../services/authorization";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/responseUtils";
 
 /**
- * Handles fetching of themes.
+ * Handles fetching of themes when not logged in.
  *
  * @param req request from call
  * @param res response to call
  *
  * @returns list of themes on success, 500 error otherwise
  */
-const getThemes = async (req: Request, res: Response) => {
-	// default to returning 30 themes per page
-	// default to returning only first page if not specified
-	// default to no searches
+const getThemesNoAuth = async (req: Request, res: Response) => {
+	// default values for fetching themes
 	const { pageSize = 30, pageNum = 1, searchQuery = "" } = req.query;
 
 	// construct unique cache key for query
@@ -59,7 +58,72 @@ const getThemes = async (req: Request, res: Response) => {
 };
 
 
+/**
+ * Handles fetching of themes with user-specific favorites (authenticated).
+ *
+ * @param req request from call
+ * @param res response to call
+ *
+ * @returns list of themes with `isFavorite` flag on success, 500 error otherwise
+ */
+const getThemes = async (req: Request, res: Response) => {
+	// default values for fetching themes
+	const { pageSize = 30, pageNum = 1, searchQuery = "" } = req.query;
 
+	// if no user id, assumed not logged in so handled by public endpoint (though routing level should have caught it)
+	const userId = req.userData.id;
+	if (!userId) {
+	  return getThemesNoAuth(req, res);
+	}
+  
+	try {
+		const cacheKey = `${process.env.THEME_CACHE_PREFIX}:${userId}:page:${pageNum}:size:${pageSize}:query:${searchQuery}`;
+	
+		// check if cache contains results and return if so
+		const cachedData = await redisEphemeralClient.get(cacheKey);
+		if (cachedData) {
+			return sendSuccessResponse(res, 200, JSON.parse(cachedData), "Themes fetched successfully.");
+		}
+
+		// construct clause for searching themes
+		const limit = parseInt(pageSize as string) || 30;
+		const offset = ((parseInt(pageNum as string) || 1) - 1) * limit;
+		const whereClause = searchQuery ? {
+			[Op.or]: [
+				{ name: { [Op.like]: `%${searchQuery}%` } },
+				{ description: { [Op.like]: `%${searchQuery}%` } },
+			]
+		} : {};
+	
+		// fetch themes according to page size, page num and search query
+		const themes = (await Theme.findAll({
+			where: whereClause,
+			limit,
+			offset,
+			include: [
+			{
+				model: FavoriteTheme,
+				where: { userId },
+				required: false,
+			},
+			],
+		})) as (Theme & { FavoriteThemes?: FavoriteTheme[] })[];
+		// casting performed above for typescript to include FavoriteThemes property
+	
+		// Map themes to include isFavorite flag
+		const themesWithFavorites = themes.map((theme) => ({
+			...theme.toJSON(),
+			isFavorite: !!(theme.FavoriteThemes && theme.FavoriteThemes.length > 0),
+		}));
+	
+		// cache the results for 10 mins
+		await redisEphemeralClient.set(cacheKey, JSON.stringify(themesWithFavorites), { EX: 600 });
+		sendSuccessResponse(res, 200, themesWithFavorites, "Themes fetched successfully.");
+	} catch (error) {
+		Logger.error("Error fetching themes with favorites:", error);
+		sendErrorResponse(res, 500, "Failed to fetch themes.");
+	}
+};
 
 
 /**
@@ -193,6 +257,7 @@ const unpublishTheme = async (req: Request, res: Response) => {
 
 export {
 	getThemes,
+	getThemesNoAuth,
 	getThemeVersions,
 	publishTheme,
 	unpublishTheme
