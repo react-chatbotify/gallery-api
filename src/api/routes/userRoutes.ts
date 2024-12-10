@@ -1,9 +1,12 @@
 import express from "express";
 import {
+	addUserFavoritePlugin,
 	addUserFavoriteTheme,
+	getUserFavoritePlugins,
 	getUserFavoriteThemes,
 	getUserProfile,
 	getUserThemes,
+	removeUserFavoritePlugin,
 	removeUserFavoriteTheme
 } from "../controllers/userController";
 import checkUserSession from "../middleware/userSessionMiddleware";
@@ -24,6 +27,15 @@ router.post("/themes/favorited", checkUserSession, addUserFavoriteTheme);
 
 // unfavorites a theme for user
 router.delete("/themes/favorited", checkUserSession, removeUserFavoriteTheme)
+
+// retrieves user favorited plugins
+router.get("/plugins/favorited", checkUserSession, getUserFavoritePlugins);
+
+// favorites a plugin for user
+router.post("/plugins/favorited", checkUserSession, addUserFavoritePlugin);
+
+// unfavorites a plugin for user
+router.delete("/plugins/favorited", checkUserSession, removeUserFavoritePlugin)
 
 // todo: add an endpoint for users to attempt to claim theme ownership
 // required if a theme is on github but the author has never logged
