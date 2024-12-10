@@ -106,7 +106,7 @@ const getUserData = async (
       // save user data to cache, expires every 15mins to update
       await redisEphemeralClient.set(
         `${process.env.USER_DATA_PREFIX as string}:${sessionId}`,
-        JSON.stringify(userProviderData),
+        JSON.stringify(userData),
         { EX: 900 },
       );
 

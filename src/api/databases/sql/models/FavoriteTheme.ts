@@ -11,8 +11,14 @@ class FavoriteTheme extends Model { }
 FavoriteTheme.init({}, { sequelize, modelName: "FavoriteTheme" });
 
 // contains only user id and theme id to associate user favorites
-FavoriteTheme.belongsTo(User, { foreignKey: "userId" });
-FavoriteTheme.belongsTo(Theme, { foreignKey: "themeId" });
+FavoriteTheme.belongsTo(User, {
+	foreignKey: "userId",
+	onDelete: "CASCADE",
+});
+FavoriteTheme.belongsTo(Theme, {
+	foreignKey: "themeId",
+	onDelete: "CASCADE",
+});
 
 User.belongsToMany(Theme, { through: FavoriteTheme, foreignKey: "userId" });
 Theme.belongsToMany(User, { through: FavoriteTheme, foreignKey: "themeId" });
