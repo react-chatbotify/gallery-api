@@ -7,6 +7,7 @@
 
 * [Introduction](#introduction)
 * [Navigating this Developer Guide](#navigating-this-developer-guide)
+* [Setup](#setup)
 * [Design](#design)
 * [Implementation](#implementation)
 * [Project Management](#project-management)

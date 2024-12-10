@@ -7,12 +7,9 @@
 * [Introduction](#introduction)
 * [Features](#features)
 * [Technologies](#technologies)
-* [Quickstart](#quickstart)
-* [Documentation](#documentation)
 * [Team](#team)
 * [Contributing](#contributing)
 * [Support](#support)
-* [Attributions](#attributions)
 
 ### Introduction
 
@@ -47,9 +44,9 @@ Typescript
 - https://github.com/tjtanjin/react-chatbotify-gallery-api
 
 ### Team
-* [Tan Jin](https://github.com/tjtanjin)
-
-// todo: the team will be expanded once members are confirmed
+* [Tan Jin](https://github.com/tjtanjin) (Lead)
+* [Hussein Serageldin](https://github.com/HusseinSerag)
+* [Hunain Ahmed](https://github.com/hunxjunedo)
 
 ### Contributing
 If you are looking to contribute to the project, you may find the [**Developer Guide**](https://github.com/tjtanjin/react-chatbotify-gallery-api/blob/main/docs/DeveloperGuide.md) useful.
