@@ -1,4 +1,4 @@
-// contents retrieved from theme meta data (i.e. github meta.json)
+// theme data retrieved from theme meta data (i.e. github meta.json)
 interface ThemeMetaData {
 	name: string;
 	description: string;
@@ -6,7 +6,6 @@ interface ThemeMetaData {
 	github: string;
 	tags: string[];
 	version: string;
-	isFavorite?: boolean;
 }
 
 export {

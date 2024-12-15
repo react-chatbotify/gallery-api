@@ -1,4 +1,5 @@
 import { Sequelize } from "sequelize";
+
 import Logger from "../../logger";
 
 // setup sequelize with provided parameters

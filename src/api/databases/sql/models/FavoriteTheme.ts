@@ -1,26 +1,39 @@
-import { Model } from "sequelize";
+import { DataTypes, Model } from "sequelize";
+
 import { sequelize } from "../sql";
-import Theme from "./Theme";
-import User from "./User";
 
 /**
  * Association table between a user and a theme (user favorite theme).
  */
 class FavoriteTheme extends Model { }
 
-FavoriteTheme.init({}, { sequelize, modelName: "FavoriteTheme" });
-
-// contains only user id and theme id to associate user favorites
-FavoriteTheme.belongsTo(User, {
-	foreignKey: "userId",
-	onDelete: "CASCADE",
+FavoriteTheme.init({
+	userId: {
+		type: DataTypes.UUID,
+		allowNull: false,
+		primaryKey: true,
+		field: "user_id",
+		references: {
+			model: "Users",
+			key: "id"
+		},
+		onDelete: "CASCADE"
+	},
+	themeId: {
+		type: DataTypes.STRING,
+		allowNull: false,
+		primaryKey: true,
+		field: "theme_id",
+		references: {
+			model: "Themes",
+			key: "id"
+		},
+		onDelete: "CASCADE"
+	}
+}, { 
+	sequelize, 
+	modelName: "FavoriteTheme",
+	timestamps: false 
 });
-FavoriteTheme.belongsTo(Theme, {
-	foreignKey: "themeId",
-	onDelete: "CASCADE",
-});
-
-User.belongsToMany(Theme, { through: FavoriteTheme, foreignKey: "userId" });
-Theme.belongsToMany(User, { through: FavoriteTheme, foreignKey: "themeId" });
 
 export default FavoriteTheme;

@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+
 import { getUserData } from "../services/authentication/authentication";
 
 /**

@@ -1,5 +1,6 @@
 import RedisStore from "connect-redis";
 import { createClient } from "redis";
+
 import Logger from "../logger";
 
 // initialize redis session client

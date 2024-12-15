@@ -1,10 +1,10 @@
 import axios from "axios";
-import Theme from "../api/databases/sql/models/Theme";
-import ThemeJobQueue from "../api/databases/sql/models/ThemeJobQueue";
-import ThemeVersion from "../api/databases/sql/models/ThemeVersion";
+import { Theme } from "../api/databases/sql/models";
+import { ThemeJobQueue } from "../api/databases/sql/models";
+import { ThemeVersion } from "../api/databases/sql/models";
 import { sequelize } from "../api/databases/sql/sql";
 import { GitHubRepoContent } from "../api/interfaces/GitHubRepoContent";
-import { ThemeMetaData } from "../api/interfaces/ThemeMetaData";
+import { ThemeMetaData } from "../api/interfaces/themes/ThemeMetaData";
 import Logger from "../api/logger";
 
 /**

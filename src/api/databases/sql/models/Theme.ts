@@ -1,6 +1,6 @@
 import { DataTypes, Model } from "sequelize";
+
 import { sequelize } from "../sql";
-import User from "./User";
 
 /**
  * Stores the data of themes.
@@ -29,6 +29,12 @@ Theme.init({
 		defaultValue: 0,
 		field: "favorites_count"
 	},
+	// number of versions released so far
+	versionsCount: {
+		type: DataTypes.INTEGER,
+		defaultValue: 0,
+		field: "versions_count"
+	},
 	// date when the theme is created, based on when it was synced in from github
 	createdAt: {
 		type: DataTypes.DATE,
@@ -46,9 +52,5 @@ Theme.init({
 	modelName: "Theme",
 	timestamps: false
 });
-
-// theme belongs to a user, but permitted to be empty (for direct theme contributions to github repository)
-// todo: perhaps the sync job can attempt to reconcile theme ownership each time it is run based on meta.json author?
-Theme.belongsTo(User, { foreignKey: "userId" });
 
 export default Theme;

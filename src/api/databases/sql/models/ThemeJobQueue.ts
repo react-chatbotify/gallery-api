@@ -1,4 +1,5 @@
 import { DataTypes, Model } from "sequelize";
+
 import { sequelize } from "../sql";
 
 /**
@@ -21,6 +22,11 @@ ThemeJobQueue.init({
 	description: {
 		type: DataTypes.TEXT,
 		allowNull: true
+	},
+	// version of the theme for this job
+	version: {
+		type: DataTypes.STRING,
+		allowNull: false
 	},
 	// action for this job (create or delete theme)
 	action: {

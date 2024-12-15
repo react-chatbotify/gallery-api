@@ -1,24 +1,39 @@
-import { Model } from 'sequelize';
-import { sequelize } from '../sql';
-import User from './User';
-import Plugin from './Plugin';
+import { DataTypes, Model } from "sequelize";
+
+import { sequelize } from "../sql";
 
 /**
  * Association table between a user and a plugin (user favorite plugin).
  */
-class FavoritePlugin extends Model {}
+class FavoritePlugin extends Model { }
 
-FavoritePlugin.init({}, { sequelize, modelName: 'FavoritePlugin' });
-
-// contains only user id and plugin id to associate user favorites
-FavoritePlugin.belongsTo(User, {
-    foreignKey: "userId",
-    onDelete: "CASCADE",
-});
-
-FavoritePlugin.belongsTo(Plugin, {
-    foreignKey: "pluginId",
-    onDelete: "CASCADE",
+FavoritePlugin.init({
+	userId: {
+		type: DataTypes.UUID,
+		allowNull: false,
+		primaryKey: true,
+		field: "user_id",
+		references: {
+			model: "Users",
+			key: "id"
+		},
+		onDelete: "CASCADE"
+	},
+	pluginId: {
+		type: DataTypes.STRING,
+		allowNull: false,
+		primaryKey: true,
+		field: "plugin_id",
+		references: {
+			model: "Plugins",
+			key: "id"
+		},
+		onDelete: "CASCADE"
+	}
+}, { 
+	sequelize, 
+	modelName: "FavoritePlugin",
+	timestamps: false 
 });
 
 export default FavoritePlugin;

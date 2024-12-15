@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import Plugin from '../databases/sql/models/Plugin';
+import { Plugin } from '../databases/sql/models';
 
 interface GetPlugins {
   searchQuery: string;

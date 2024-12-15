@@ -1,4 +1,5 @@
 import { DataTypes, Model } from "sequelize";
+
 import { sequelize } from "../sql";
 import User from "./User";
 

@@ -1,5 +1,6 @@
 import express from 'express';
 import multer from 'multer';
+
 import {
 	getThemes,
 	getThemesNoAuth,
@@ -9,6 +10,7 @@ import {
 } from '../controllers/themeController';
 import checkUserSession from '../middleware/userSessionMiddleware';
 import { getUserData } from '../services/authentication/authentication';
+import { getFileExtension } from "../utils/fileUtils";
 
 // multer storage configuration
 const storage = multer.memoryStorage();
@@ -32,13 +34,6 @@ const upload = multer({
 	},
 	storage,
 });
-
-// helper function to get file extension
-export function getFileExtension(filename: string) {
-	return filename
-		.slice(((filename.lastIndexOf('.') - 1) >>> 0) + 2)
-		.toLowerCase();
-}
 
 const router = express.Router();
 

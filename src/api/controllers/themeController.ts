@@ -1,13 +1,25 @@
 import { Request, Response } from "express";
-import { Op } from "sequelize";
-import FavoriteTheme from "../databases/sql/models/FavoriteTheme";
-import Theme from "../databases/sql/models/Theme";
-import ThemeJobQueue from "../databases/sql/models/ThemeJobQueue";
-import ThemeVersion from "../databases/sql/models/ThemeVersion";
-import { redisEphemeralClient } from "../databases/redis";
-import Logger from "../logger";
+
 import { checkIsAdminUser } from "../services/authorization";
+import {
+	getThemeDataFromCache,
+	getThemeSearchFromCache,
+	getThemeVersionsFromCache,
+	saveThemeDataToCache,
+	saveThemeSearchToCache,
+	saveThemeVersionsToCache
+} from "../services/themes/cacheService";
+import {
+	addThemeJobToDb,
+	deleteThemeDataFromDb,
+	getThemeDataFromDb,
+	getThemeVersionsFromDb
+} from "../services/themes/dbService";
+import { getUserFavoriteThemesFromCache, saveUserFavoriteThemesToCache } from "../services/users/cacheService";
+import { getUserFavoriteThemesFromDb } from "../services/users/dbService";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/responseUtils";
+import { Theme } from "../databases/sql/models";
+import Logger from "../logger";
 
 /**
  * Handles fetching of themes when not logged in.
@@ -19,44 +31,28 @@ import { sendErrorResponse, sendSuccessResponse } from "../utils/responseUtils";
  */
 const getThemesNoAuth = async (req: Request, res: Response) => {
 	// default values for fetching themes
-	const { pageSize = 30, pageNum = 1, searchQuery = "" } = req.query;
-
-	// construct unique cache key for query
-	const cacheKey = `${process.env.THEME_CACHE_PREFIX}:page:${pageNum}:size:${pageSize}:query:${searchQuery}`;
+	const searchQuery = req.query.searchQuery as string ?? "";
+	const pageNum = parseInt(req.query.pageNum as string) ?? 1;
+	const pageSize = parseInt(req.query.pageSize as string) ?? 30;
 
 	try {
 		// check if cache contains results and return if so
-		const cachedData = await redisEphemeralClient.get(cacheKey);
-		if (cachedData) {
-			return sendSuccessResponse(res, 200, JSON.parse(cachedData), "Themes fetched successfully.");
+		let themes;
+		const searchResult = await getThemeSearchFromCache(searchQuery, pageNum, pageSize);
+		if (searchResult) {
+			themes = await getThemeDataFromCache(searchResult);
+		} else {
+			themes = await getThemeDataFromDb(searchQuery, pageNum, pageSize);
+			saveThemeSearchToCache(searchQuery, pageNum, pageSize, themes);
+			saveThemeDataToCache(themes);
 		}
 
-		// construct clause for searching themes
-		const limit = parseInt(pageSize as string) || 30;
-		const offset = ((parseInt(pageNum as string) || 1) - 1) * limit;
-		const whereClause = searchQuery ? {
-			[Op.or]: [
-				{ name: { [Op.like]: `%${searchQuery}%` } },
-				{ description: { [Op.like]: `%${searchQuery}%` } }
-			]
-		} : {};
-	
-		// fetch themes according to page size, page num and search query
-		const themes = await Theme.findAll({
-			where: whereClause,
-			limit,
-			offset,
-		});
-	
-		// cache the results for 30 mins
-		await redisEphemeralClient.set(cacheKey, JSON.stringify(themes), { EX: 1800 });
 		sendSuccessResponse(res, 200, themes, "Themes fetched successfully.");
 	} catch (error) {
 		Logger.error("Error fetching themes:", error);
 		sendErrorResponse(res, 500, "Failed to fetch themes.");
 	}
 };
-
 
 /**
  * Handles fetching of themes with user-specific favorites (authenticated).
@@ -68,63 +64,47 @@ const getThemesNoAuth = async (req: Request, res: Response) => {
  */
 const getThemes = async (req: Request, res: Response) => {
 	// default values for fetching themes
-	const { pageSize = 30, pageNum = 1, searchQuery = "" } = req.query;
+	const searchQuery = req.query.searchQuery as string ?? "";
+	const pageNum = parseInt(req.query.pageNum as string) ?? 1;
+	const pageSize = parseInt(req.query.pageSize as string) ?? 30;
 
-	// if no user id, assumed not logged in so handled by public endpoint (though routing level should have caught it)
+	// if no user id, assumed not logged in so handled by public endpoint (though router should have caught it!)
 	const userId = req.userData.id;
 	if (!userId) {
 	  return getThemesNoAuth(req, res);
 	}
   
 	try {
-		const cacheKey = `${process.env.THEME_CACHE_PREFIX}:${userId}:page:${pageNum}:size:${pageSize}:query:${searchQuery}`;
-	
-		// check if cache contains results and return if so
-		const cachedData = await redisEphemeralClient.get(cacheKey);
-		if (cachedData) {
-			return sendSuccessResponse(res, 200, JSON.parse(cachedData), "Themes fetched successfully.");
+		// check if cache contains results and return if so ; otherwise fetch from db
+		let themes;
+		const searchResult = await getThemeSearchFromCache(searchQuery, pageNum, pageSize);
+		if (searchResult) {
+			themes = await getThemeDataFromCache(searchResult);
+		} else {
+			themes = await getThemeDataFromDb(searchQuery, pageNum, pageSize);
+			saveThemeSearchToCache(searchQuery, pageNum, pageSize, themes);
+			saveThemeDataToCache(themes);
 		}
 
-		// construct clause for searching themes
-		const limit = parseInt(pageSize as string) || 30;
-		const offset = ((parseInt(pageNum as string) || 1) - 1) * limit;
-		const whereClause = searchQuery ? {
-			[Op.or]: [
-				{ name: { [Op.like]: `%${searchQuery}%` } },
-				{ description: { [Op.like]: `%${searchQuery}%` } },
-			]
-		} : {};
-	
-		// fetch themes according to page size, page num and search query
-		const themes = (await Theme.findAll({
-			where: whereClause,
-			limit,
-			offset,
-			include: [
-			{
-				model: FavoriteTheme,
-				where: { userId },
-				required: false,
-			},
-			],
-		})) as (Theme & { FavoriteThemes?: FavoriteTheme[] })[];
-		// casting performed above for typescript to include FavoriteThemes property
-	
-		// Map themes to include isFavorite flag
+		// check if cache contains user favorites and return if so ; otherwise fetch from db
+		let userFavorites = await getUserFavoriteThemesFromCache(userId);
+		if (userFavorites === null) {
+			userFavorites = await getUserFavoriteThemesFromDb(userId);
+			saveUserFavoriteThemesToCache(userId, userFavorites);
+		}
+
+		// reconcile themes with user favorites
 		const themesWithFavorites = themes.map((theme) => ({
-			...theme.toJSON(),
-			isFavorite: !!(theme.FavoriteThemes && theme.FavoriteThemes.length > 0),
+			...theme,
+			isFavorite: userFavorites.includes(theme.id),
 		}));
-	
-		// cache the results for 10 mins
-		await redisEphemeralClient.set(cacheKey, JSON.stringify(themesWithFavorites), { EX: 600 });
+
 		sendSuccessResponse(res, 200, themesWithFavorites, "Themes fetched successfully.");
 	} catch (error) {
 		Logger.error("Error fetching themes with favorites:", error);
 		sendErrorResponse(res, 500, "Failed to fetch themes.");
 	}
 };
-
 
 /**
  * Retrieves all the published versions for a theme.
@@ -135,10 +115,14 @@ const getThemes = async (req: Request, res: Response) => {
  * @returns list of theme versions on success, 500 error otherwise
  */
 const getThemeVersions = async (req: Request, res: Response) => {
+	const themeId = req.query.themeId as string;
 	try {
-		const versions = await ThemeVersion.findAll({
-			where: { themeId: req.query.themeId }
-		});
+		// check if cache contains results and return if so ; otherwise fetch from npm
+		let versions = await getThemeVersionsFromCache(themeId);
+		if (versions === null) {
+			versions = await getThemeVersionsFromDb(themeId)
+			saveThemeVersionsToCache(themeId, versions);
+		}
 
 		sendSuccessResponse(res, 200, versions, "Theme versions fetched successfully.");
 	} catch (error) {
@@ -157,6 +141,8 @@ const getThemeVersions = async (req: Request, res: Response) => {
  */
 const publishTheme = async (req: Request, res: Response) => {
 	const userData = req.userData;
+
+	// plugin information provided by the user
 	const { themeId, name, description, version } = req.body;
 
 	// todo: perform checks in the following steps:
@@ -174,22 +160,12 @@ const publishTheme = async (req: Request, res: Response) => {
 
 	// add the new creation to theme job queue for processing later
 	try {
-		const themeJobQueueEntry = await ThemeJobQueue.create({
-			userId: userData.id,
-			themeId: themeId,
-			name,
-			description,
-			action: "CREATE"
-		});
-
-		// invalidate cache when themes are added
-		await redisEphemeralClient.keys(`${process.env.THEME_CACHE_PREFIX}:*`).then((keys) => {
-			keys.forEach(async (key) => {
-				await redisEphemeralClient.del(key);
-			});
-		});
-
-		// todo: push files into minio bucket with themeId for process queue job to pick up
+		// todo: before adding job to db, should check if there are existing jobs to avoid multiple jobs in the queue
+		// todo: frontend should have a status interface to show pending jobs (so that users can delete etc)
+		const themeJobQueueEntry = await addThemeJobToDb(themeId, userData.id, name, description, version);
+		// todo: increment version count
+		// todo: push files into minio bucket with themeId for process queue job to pick up and push to github
+		// todo: consume job queue
 
 		sendSuccessResponse(res, 201, themeJobQueueEntry, "Themed queued for publishing.");
 	} catch (error) {
@@ -210,7 +186,11 @@ const unpublishTheme = async (req: Request, res: Response) => {
 	const userData = req.userData;
 	const { themeId } = req.params;
 
-	// check if the theme exists and is owned by the user
+	// only admins can unpublish themes
+	if (!checkIsAdminUser(userData)) {
+		return sendErrorResponse(res, 403, "Unauthorized access.");
+	}
+
 	try {
 		const theme = await Theme.findOne({
 			where: {
@@ -223,32 +203,11 @@ const unpublishTheme = async (req: Request, res: Response) => {
 			return sendErrorResponse(res, 404, "Failed to unpublish theme, the theme does not exist.");
 		}
 
-		// if theme exist and user is admin, can delete
-		const isAdminUser = checkIsAdminUser(userData);
-		if (isAdminUser) {
-			// todo: allow admins to forcibly unpublish themes
-		}
+		await deleteThemeDataFromDb(themeId);
 
-		// invalidate cache when themes are removed
-		await redisEphemeralClient.keys(`${process.env.THEME_CACHE_PREFIX}:*`).then((keys) => {
-			keys.forEach(async (key) => {
-				await redisEphemeralClient.del(key);
-			});
-		});
+		// todo: add logic for queuing themes to be deleted from github
 
-		// todo: review how to handle unpublishing of themes, authors should not be allowed to delete themes anytime
-		// as there may be existing projects using their themes - perhaps separately have a support system for such action
-		return sendErrorResponse(res, 400, "Feature not available yet.");
-
-		// if theme exist but user is not the theme author, cannot delete
-		// if (theme.dataValues.userId != req.session.userId) {
-		// sendErrorResponse(res, 403, "Failed to unpublish theme, you are not the theme author.");
-		// }
-
-		// delete the theme
-		// await theme.destroy();
-
-		// sendSuccessResponse(res, 200, theme, "Theme queued for unpublishing.");
+		sendSuccessResponse(res, 200, theme, "Theme queued for unpublishing.");
 	} catch (error) {
 		Logger.error("Error unpublishing theme:", error);
 		sendErrorResponse(res, 500, "Failed to unpublish theme, please try again.");
