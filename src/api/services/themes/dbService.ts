@@ -35,10 +35,18 @@ const getThemesDataByIdsFromDb = async (themeIds: string[]): Promise<ThemeData[]
  * @param searchQuery query to search for themes
  * @param pageNum page number of themes to retrieve
  * @param pageSize number of themes to retrieve
+ * @param sortBy column to sort results by
+ * @param sortDirection direction to sort
  *
  * @returns array of theme data
  */
-const getThemeDataFromDb = async (searchQuery: string, pageNum: number, pageSize: number): Promise<ThemeData[]> => {
+const getThemeDataFromDb = async (
+	searchQuery: string,
+	pageNum: number,
+	pageSize: number,
+	sortBy: string = "createdAt",
+	sortDirection: "ASC" | "DESC" = "DESC"
+): Promise<ThemeData[]> => {
 	// construct clause for searching themes
 	const limit = pageSize || 30;
 	const offset = ((pageNum || 1) - 1) * limit;
@@ -49,11 +57,15 @@ const getThemeDataFromDb = async (searchQuery: string, pageNum: number, pageSize
 		]
 	} : {};
 
-	// fetch themes according to search query, page num and page size
+	const validSortColumns = ["favoritesCount", "createdAt"];
+	const sortColumn = validSortColumns.includes(sortBy) ? sortBy : "createdAt";
+
+	// fetch themes according to search query, page num, page size and sorting
 	const themes = await Theme.findAll({
 		where: whereClause,
 		limit,
 		offset,
+		order: [[sortColumn, sortDirection]],
 	});
 
 	return themes.map(theme => theme.toJSON());
@@ -119,11 +131,11 @@ const deleteThemeJobFromDb = async (themeId: string) => {
 
 		// remove jobs
 		await ThemeJobQueue.destroy({
-            where: {
-                themeId: themeId
-            },
-            transaction
-        });
+			where: {
+				themeId: themeId
+			},
+			transaction
+		});
 
 		return themeJobQueueEntry;
 	});

@@ -34,10 +34,18 @@ const getPluginsDataByIdsFromDb = async (pluginIds: string[]): Promise<PluginDat
  * @param searchQuery query to search for plugins
  * @param pageNum page number of plugins to retrieve
  * @param pageSize number of plugins to retrieve
+ * @param sortBy column to sort results by
+ * @param sortDirection direction to sort
  *
  * @returns array of plugin data
  */
-const getPluginDataFromDb = async (searchQuery: string, pageNum: number, pageSize: number): Promise<PluginData[]> => {
+const getPluginDataFromDb = async (
+	searchQuery: string,
+	pageNum: number,
+	pageSize: number,
+	sortBy: string = "createdAt",
+	sortDirection: "ASC" | "DESC" = "DESC"
+):  Promise<PluginData[]> => {
 	// construct clause for searching plugins
 	const limit = pageSize || 30;
 	const offset = ((pageNum || 1) - 1) * limit;
@@ -48,11 +56,15 @@ const getPluginDataFromDb = async (searchQuery: string, pageNum: number, pageSiz
 		]
 	} : {};
 
-	// fetch plugins according to search query, page num and page size
+	const validSortColumns = ["favoritesCount", "createdAt"];
+	const sortColumn = validSortColumns.includes(sortBy) ? sortBy : "createdAt";
+
+	// fetch plugins according to search query, page num, page size and sorting
 	const plugins = await Plugin.findAll({
 		where: whereClause,
 		limit,
 		offset,
+		order: [[sortColumn, sortDirection]],
 	});
 
 	return plugins.map(plugin => plugin.toJSON());
