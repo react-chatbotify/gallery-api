@@ -33,7 +33,8 @@ const getThemesNoAuth = async (req: Request, res: Response) => {
 	// default values for fetching themes
 	const searchQuery = req.query.searchQuery as string ?? "";
 	const pageNum = parseInt(req.query.pageNum as string) ?? 1;
-	const pageSize = parseInt(req.query.pageSize as string) ?? 30;
+	const requestedPageSize = parseInt(req.query.pageSize as string, 10) || 30;
+  	const pageSize = requestedPageSize > 50 ? 50 : requestedPageSize;
 	const sortBy = req.query.sortBy as string ?? "updatedAt";
 	const sortDirection = req.query.sortDirection as "ASC" | "DESC" ?? "DESC";
 
@@ -68,7 +69,8 @@ const getThemes = async (req: Request, res: Response) => {
 	// default values for fetching themes
 	const searchQuery = req.query.searchQuery as string ?? "";
 	const pageNum = parseInt(req.query.pageNum as string) ?? 1;
-	const pageSize = parseInt(req.query.pageSize as string) ?? 30;
+	const requestedPageSize = parseInt(req.query.pageSize as string, 10) || 30;
+  	const pageSize = requestedPageSize > 50 ? 50 : requestedPageSize;
 	const sortBy = req.query.sortBy as string ?? "updatedAt";
 	const sortDirection = req.query.sortDirection as "ASC" | "DESC" ?? "DESC";
 
