@@ -43,7 +43,7 @@ const getPluginDataFromDb = async (
 	searchQuery: string,
 	pageNum: number,
 	pageSize: number,
-	sortBy: string = "createdAt",
+	sortBy: string = "updatedAt",
 	sortDirection: "ASC" | "DESC" = "DESC"
 ):  Promise<PluginData[]> => {
 	// construct clause for searching plugins
@@ -56,8 +56,8 @@ const getPluginDataFromDb = async (
 		]
 	} : {};
 
-	const validSortColumns = ["favoritesCount", "createdAt"];
-	const sortColumn = validSortColumns.includes(sortBy) ? sortBy : "createdAt";
+	const validSortColumns = ["favoritesCount", "createdAt", "updatedAt"];
+	const sortColumn = validSortColumns.includes(sortBy) ? sortBy : "updatedAt";
 
 	// fetch plugins according to search query, page num, page size and sorting
 	const plugins = await Plugin.findAll({

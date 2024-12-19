@@ -44,7 +44,7 @@ const getThemeDataFromDb = async (
 	searchQuery: string,
 	pageNum: number,
 	pageSize: number,
-	sortBy: string = "createdAt",
+	sortBy: string = "updatedAt",
 	sortDirection: "ASC" | "DESC" = "DESC"
 ): Promise<ThemeData[]> => {
 	// construct clause for searching themes
@@ -57,8 +57,8 @@ const getThemeDataFromDb = async (
 		]
 	} : {};
 
-	const validSortColumns = ["favoritesCount", "createdAt"];
-	const sortColumn = validSortColumns.includes(sortBy) ? sortBy : "createdAt";
+	const validSortColumns = ["favoritesCount", "createdAt", "updatedAt"];
+	const sortColumn = validSortColumns.includes(sortBy) ? sortBy : "updatedAt";
 
 	// fetch themes according to search query, page num, page size and sorting
 	const themes = await Theme.findAll({
