@@ -19,9 +19,11 @@ const THEME_VERSIONS_CACHE_PREFIX = process.env.THEME_VERSIONS_CACHE_PREFIX;
 const getThemeSearchFromCache = async (
 	searchQuery: string,
 	pageNum: number,
-	pageSize: number
+	pageSize: number,
+	sortBy: string,
+	sortDirection: string,
 ) : Promise<string[] | null> => {
-	const searchKey = `${THEME_SEARCH_CACHE_PREFIX}:${searchQuery}:${pageNum}:${pageSize}`;
+	const searchKey = `${THEME_SEARCH_CACHE_PREFIX}:${searchQuery}:${pageNum}:${pageSize}:${sortBy}:${sortDirection}`;
 
 	const cachedIds = await redisEphemeralClient.get(searchKey);
 	if (cachedIds === null) {
@@ -43,9 +45,11 @@ const saveThemeSearchToCache = async (
 	searchQuery: string,
 	pageNum: number,
 	pageSize: number,
+	sortBy: string,
+	sortDirection: string,
 	themes: ThemeData[]
 ) => {
-	const searchKey = `${THEME_SEARCH_CACHE_PREFIX}:${searchQuery}:${pageNum}:${pageSize}`;
+	const searchKey = `${THEME_SEARCH_CACHE_PREFIX}:${searchQuery}:${pageNum}:${pageSize}:${sortBy}:${sortDirection}`;
 	const themeIds = themes.map(theme => theme.id);
 	redisEphemeralClient.set(searchKey, JSON.stringify(themeIds), { EX: 900 });
 }

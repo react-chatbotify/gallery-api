@@ -32,16 +32,18 @@ const getPluginsNoAuth = async (req: Request, res: Response) => {
 	const searchQuery = req.query.searchQuery as string ?? "";
 	const pageNum = parseInt(req.query.pageNum as string) ?? 1;
 	const pageSize = parseInt(req.query.pageSize as string) ?? 30;
+	const sortBy = req.query.sortBy as string ?? "updatedAt";
+	const sortDirection = req.query.sortDirection as "ASC" | "DESC" ?? "DESC";
 
 	try {
 		// check if cache contains results and return if so ; otherwise fetch from db
 		let plugins;
-		const searchResult = await getPluginSearchFromCache(searchQuery, pageNum, pageSize);
+		const searchResult = await getPluginSearchFromCache(searchQuery, pageNum, pageSize, sortBy, sortDirection);
 		if (searchResult) {
 			plugins = await getPluginDataFromCache(searchResult);
 		} else {
-			plugins = await getPluginDataFromDb(searchQuery, pageNum, pageSize);
-			savePluginSearchToCache(searchQuery, pageNum, pageSize, plugins);
+			plugins = await getPluginDataFromDb(searchQuery, pageNum, pageSize, sortBy, sortDirection);
+			savePluginSearchToCache(searchQuery, pageNum, pageSize, sortBy, sortDirection, plugins);
 			savePluginDataToCache(plugins);
 		}
 
@@ -65,6 +67,8 @@ const getPlugins = async (req: Request, res: Response) => {
 	const searchQuery = req.query.searchQuery as string ?? "";
 	const pageNum = parseInt(req.query.pageNum as string) ?? 1;
 	const pageSize = parseInt(req.query.pageSize as string) ?? 30;
+	const sortBy = req.query.sortBy as string ?? "updatedAt";
+	const sortDirection = req.query.sortDirection as "ASC" | "DESC" ?? "DESC";
 
 	// if no user id, assumed not logged in so handled by public endpoint (though router should have caught it!)
 	const userId = req.userData.id;
@@ -75,12 +79,12 @@ const getPlugins = async (req: Request, res: Response) => {
 	try {
 		// check if cache contains results and return if so ; otherwise fetch from db
 		let plugins;
-		const searchResult = await getPluginSearchFromCache(searchQuery, pageNum, pageSize);
+		const searchResult = await getPluginSearchFromCache(searchQuery, pageNum, pageSize, sortBy, sortDirection);
 		if (searchResult) {
 			plugins = await getPluginDataFromCache(searchResult);
 		} else {
-			plugins = await getPluginDataFromDb(searchQuery, pageNum, pageSize);
-			savePluginSearchToCache(searchQuery, pageNum, pageSize, plugins);
+			plugins = await getPluginDataFromDb(searchQuery, pageNum, pageSize, sortBy, sortDirection);
+			savePluginSearchToCache(searchQuery, pageNum, pageSize, sortBy, sortDirection, plugins);
 			savePluginDataToCache(plugins);
 		}
 

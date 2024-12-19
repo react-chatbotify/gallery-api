@@ -19,9 +19,11 @@ const PLUGIN_VERSIONS_CACHE_PREFIX = process.env.PLUGIN_VERSIONS_CACHE_PREFIX;
 const getPluginSearchFromCache = async (
 	searchQuery: string,
 	pageNum: number,
-	pageSize: number
+	pageSize: number,
+	sortBy: string,
+	sortDirection: string,
 ) : Promise<string[] | null> => {
-	const searchKey = `${PLUGIN_SEARCH_CACHE_PREFIX}:${searchQuery}:${pageNum}:${pageSize}`;
+	const searchKey = `${PLUGIN_SEARCH_CACHE_PREFIX}:${searchQuery}:${pageNum}:${pageSize}:${sortBy}:${sortDirection}`;
 
 	const cachedIds = await redisEphemeralClient.get(searchKey);
 	if (cachedIds === null) {
@@ -43,9 +45,11 @@ const savePluginSearchToCache = async (
 	searchQuery: string,
 	pageNum: number,
 	pageSize: number,
+	sortBy: string,
+	sortDirection: string,
 	plugins: PluginData[]
 ) => {
-	const searchKey = `${PLUGIN_SEARCH_CACHE_PREFIX}:${searchQuery}:${pageNum}:${pageSize}`;
+	const searchKey = `${PLUGIN_SEARCH_CACHE_PREFIX}:${searchQuery}:${pageNum}:${pageSize}:${sortBy}:${sortDirection}`;
 	const pluginIds = plugins.map(plugin => plugin.id);
 	redisEphemeralClient.set(searchKey, JSON.stringify(pluginIds), { EX: 900 });
 }

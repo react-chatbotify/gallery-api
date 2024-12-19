@@ -34,16 +34,18 @@ const getThemesNoAuth = async (req: Request, res: Response) => {
 	const searchQuery = req.query.searchQuery as string ?? "";
 	const pageNum = parseInt(req.query.pageNum as string) ?? 1;
 	const pageSize = parseInt(req.query.pageSize as string) ?? 30;
+	const sortBy = req.query.sortBy as string ?? "updatedAt";
+	const sortDirection = req.query.sortDirection as "ASC" | "DESC" ?? "DESC";
 
 	try {
 		// check if cache contains results and return if so
 		let themes;
-		const searchResult = await getThemeSearchFromCache(searchQuery, pageNum, pageSize);
+		const searchResult = await getThemeSearchFromCache(searchQuery, pageNum, pageSize, sortBy, sortDirection);
 		if (searchResult) {
 			themes = await getThemeDataFromCache(searchResult);
 		} else {
-			themes = await getThemeDataFromDb(searchQuery, pageNum, pageSize);
-			saveThemeSearchToCache(searchQuery, pageNum, pageSize, themes);
+			themes = await getThemeDataFromDb(searchQuery, pageNum, pageSize, sortBy, sortDirection);
+			saveThemeSearchToCache(searchQuery, pageNum, pageSize, sortBy, sortDirection, themes);
 			saveThemeDataToCache(themes);
 		}
 
@@ -67,6 +69,8 @@ const getThemes = async (req: Request, res: Response) => {
 	const searchQuery = req.query.searchQuery as string ?? "";
 	const pageNum = parseInt(req.query.pageNum as string) ?? 1;
 	const pageSize = parseInt(req.query.pageSize as string) ?? 30;
+	const sortBy = req.query.sortBy as string ?? "updatedAt";
+	const sortDirection = req.query.sortDirection as "ASC" | "DESC" ?? "DESC";
 
 	// if no user id, assumed not logged in so handled by public endpoint (though router should have caught it!)
 	const userId = req.userData.id;
@@ -77,12 +81,12 @@ const getThemes = async (req: Request, res: Response) => {
 	try {
 		// check if cache contains results and return if so ; otherwise fetch from db
 		let themes;
-		const searchResult = await getThemeSearchFromCache(searchQuery, pageNum, pageSize);
+		const searchResult = await getThemeSearchFromCache(searchQuery, pageNum, pageSize, sortBy, sortDirection);
 		if (searchResult) {
 			themes = await getThemeDataFromCache(searchResult);
 		} else {
-			themes = await getThemeDataFromDb(searchQuery, pageNum, pageSize);
-			saveThemeSearchToCache(searchQuery, pageNum, pageSize, themes);
+			themes = await getThemeDataFromDb(searchQuery, pageNum, pageSize, sortBy, sortDirection);
+			saveThemeSearchToCache(searchQuery, pageNum, pageSize, sortBy, sortDirection, themes);
 			saveThemeDataToCache(themes);
 		}
 
