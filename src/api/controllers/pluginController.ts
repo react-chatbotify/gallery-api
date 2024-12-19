@@ -19,6 +19,8 @@ import { sendErrorResponse, sendSuccessResponse } from "../utils/responseUtils";
 import { Plugin } from "../databases/sql/models";
 import Logger from "../logger";
 
+const maxFileSize = Number(process.env.MAX_PLUGIN_IMAGE_FILE_SIZE) || 1 * 1024 * 1024; // defaults to 1 MB if not set
+
 /**
  * Handles fetching of plugins when not logged in.
  *
@@ -151,6 +153,11 @@ const publishPlugin = async (req: Request, res: Response) => {
 	const imgFile = (req.files as { [fieldname: string]: Express.Multer.File[] })[
 		"imgUrl"
 	][0];
+
+	if (imgFile.size > maxFileSize) {
+        return sendErrorResponse(res, 400, "Plugin image file size exceeds the 1 MB limit.");
+    }
+
 	const [fileName, extension] = imgFile.originalname.split(".");
 	const imgName = fileName + crypto.randomBytes(20).toString("hex") + "." + extension;
 
