@@ -25,6 +25,20 @@ const pluginPaths = {
 									"schema": { "type": "string" },
 									"required": false,
 									"description": "A search query to filter plugins by name or description."
+							},
+							{
+								"in": "query",
+								"name": "sortBy",
+								"schema": { "type": "string", "default": "updatedAt" },
+								"required": false,
+								"description": "The field to sort the results with."
+							},
+							{
+								"in": "query",
+								"name": "sortDirection",
+								"schema": { "type": "string", "default": "DESC" },
+								"required": false,
+								"description": "The direction to sort in."
 							}
 					],
 					"responses": {
