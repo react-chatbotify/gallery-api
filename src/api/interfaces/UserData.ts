@@ -2,6 +2,7 @@
 interface UserData {
 	id: string;
 	role: string;
+	acceptedAuthorAgreement: boolean;
 	name: string;
 	email: string;
 	handle: string;

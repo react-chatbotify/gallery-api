@@ -100,6 +100,7 @@ const getUserData = async (
 			const userData: UserData = {
 				id: user.dataValues.id,
 				role: user.dataValues.role,
+				acceptedAuthorAgreement: user.dataValues.acceptedAuthorAgreement,
 				...userProviderData,
 			};
 
