@@ -73,6 +73,10 @@ const invalidateThemeSearchCache = async () => {
  * @returns an array of theme data
  */
 const getThemeDataFromCache = async (themeIds: string[]): Promise<ThemeData[]> => {
+	if (themeIds.length === 0) {
+		return [];
+	}
+
 	const themeKeys = themeIds.map((id) => `${THEME_DATA_CACHE_PREFIX}:${id}`);
 	const rawThemes = await redisEphemeralClient.mGet(themeKeys);
 	

@@ -73,6 +73,10 @@ const invalidatePluginSearchCache = async () => {
  * @returns an array of plugin data
  */
 const getPluginDataFromCache = async (pluginIds: string[]): Promise<PluginData[]> => {
+	if (pluginIds.length === 0) {
+		return [];
+	}
+	
 	const pluginKeys = pluginIds.map((id) => `${PLUGIN_DATA_CACHE_PREFIX}:${id}`);
 	const rawPlugins = await redisEphemeralClient.mGet(pluginKeys);
 	
