@@ -23,6 +23,7 @@ import {
 	removeUserFavoriteThemeFromDb
 } from "../services/users/dbService";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/responseUtils";
+import { User } from "../databases/sql/models";
 import Logger from "../logger";
 
 /**
@@ -239,6 +240,40 @@ const removeUserFavoritePlugin = async (req: Request, res: Response) => {
 	}
 };
 
+/**
+ * Sets if a user accepts author agreement.
+ * 
+ * @param req request from call
+ * @param res response to call
+ * 
+ * @returns 200 if successful, 400 if invalid request body and, 500 otherwise
+ */
+const setUserAcceptAuthorAgreement = async (req: Request, res: Response) => {
+	const userData = req.userData;
+	const userId = userData.id;
+	const accept = req.body.accept;
+
+	if (typeof accept === "boolean") {
+		try {
+			await User.update(
+				{ acceptedAuthorAgreement: accept ? new Date() : null },
+				{ where: { id: userId } }
+			);
+
+			res.status(200).json({
+				message: accept
+					? "Author agreement accepted successfully."
+					: "Author agreement status reset successfully.",
+			});
+		} catch (error) {
+			console.error("Error updating user author agreement:", error);
+			res.status(500).json({ error: "Failed to update author agreement status." });
+		}
+	} else {
+		res.status(400).json({ error: "Invalid request. Accept must be a boolean." });
+	}
+};
+
 export {
 	addUserFavoritePlugin,
 	addUserFavoriteTheme,
@@ -247,5 +282,6 @@ export {
 	getUserProfile,
 	getUserThemes,
 	removeUserFavoritePlugin,
-	removeUserFavoriteTheme
+	removeUserFavoriteTheme,
+	setUserAcceptAuthorAgreement,
 };

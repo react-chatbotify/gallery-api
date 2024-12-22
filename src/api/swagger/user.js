@@ -353,6 +353,85 @@ const userPaths = {
 				}
 			}
 		}
+	},
+	"/api/v1/users/author-agreement": {
+		"post": {
+			"tags": [
+				"Users Module"
+			],
+			"summary": "Sets the user's acceptance of the author agreement.",
+			"description": "Updates the user's record to indicate whether they have accepted the author agreement. If `accept` is true, the agreement date is recorded. If false, the agreement status is reset.",
+			"requestBody": {
+				"required": true,
+				"content": {
+					"application/json": {
+						"schema": {
+							"type": "object",
+							"properties": {
+								"accept": {
+									"type": "boolean",
+									"description": "Indicates whether the user accepts or declines the author agreement. If true, the agreement date is recorded; if false, the status is reset."
+								}
+							},
+							"required": ["accept"]
+						},
+						"example": {
+							"accept": true
+						}
+					}
+				}
+			},
+			"responses": {
+				"200": {
+					"description": "Author agreement status updated successfully.",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ApiResult"
+							},
+							"example": {
+								"success": true,
+								"message": "Author agreement accepted successfully.",
+								"data": null,
+								"errors": []
+							}
+						}
+					}
+				},
+				"400": {
+					"description": "Invalid input or request.",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ApiResult"
+							},
+							"example": {
+								"success": false,
+								"message": "Invalid request. Accept must be a boolean.",
+								"data": null,
+								"errors": []
+							}
+						}
+					}
+				},
+				"500": {
+					"description": "Internal server error occurred.",
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ApiResult"
+							},
+							"example": {
+								"success": false,
+								"message": "Failed to update author agreement status.",
+								"data": null,
+								"errors": []
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 };
 
