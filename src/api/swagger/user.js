@@ -354,6 +354,228 @@ const userPaths = {
 			}
 		}
 	},
+	"/api/v1/users/plugins/favorited": {
+        "get": {
+            "tags": ["Users Module"],
+            "summary": "Retrieves plugins favorited by the user.",
+            "description": "Fetches the list of plugins favorited by the user if the user is authorized.",
+            "parameters": [
+                {
+                    "in": "query",
+                    "name": "userId",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "required": false,
+                    "description": "The ID of the user whose favorited plugins are being requested."
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "User's favorited plugins retrieved successfully.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ApiResult"
+                            },
+                            "example": {
+                                "success": true,
+                                "message": "User favorite plugins fetched successfully.",
+                                "data": [
+                                    {
+                                        "id": "plugin123",
+                                        "name": "Code Formatter",
+                                        "description": "Formats code automatically.",
+                                        "version": "2.1.0"
+                                    }
+                                ],
+                                "errors": []
+                            }
+                        }
+                    }
+                },
+                "403": {
+                    "description": "Unauthorized access.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ApiResult"
+                            },
+                            "example": {
+                                "success": false,
+                                "message": "Unauthorized access.",
+                                "data": null,
+                                "errors": []
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "post": {
+            "tags": ["Users Module"],
+            "summary": "Adds a plugin to user's favorites.",
+            "description": "Adds the specified plugin to the user's list of favorited plugins.",
+            "requestBody": {
+                "required": true,
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "pluginId": {
+                                    "type": "string",
+                                    "description": "The ID of the plugin to be added to favorites."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "responses": {
+                "201": {
+                    "description": "Plugin added to favorites successfully.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ApiResult"
+                            },
+                            "example": {
+                                "success": true,
+                                "message": "Added plugin to favorites successfully.",
+                                "data": {
+                                    "id": "plugin123",
+                                    "name": "Code Formatter",
+                                    "description": "Formats code automatically.",
+                                    "version": "2.1.0"
+                                },
+                                "errors": []
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "Plugin not found.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ApiResult"
+                            },
+                            "example": {
+                                "success": false,
+                                "message": "Plugin not found.",
+                                "data": null,
+                                "errors": []
+                            }
+                        }
+                    }
+                },
+                "400": {
+                    "description": "Plugin already favorited.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ApiResult"
+                            },
+                            "example": {
+                                "success": false,
+                                "message": "Plugin already favorited.",
+                                "data": null,
+                                "errors": []
+                            }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "Internal server error occurred while adding plugin to favorites.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ApiResult"
+                            },
+                            "example": {
+                                "success": false,
+                                "message": "Failed to add favorite plugin.",
+                                "data": null,
+                                "errors": []
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "delete": {
+            "tags": ["Users Module"],
+            "summary": "Removes a plugin from user's favorites.",
+            "description": "Removes the specified plugin from the user's list of favorited plugins.",
+            "parameters": [
+                {
+                    "in": "query",
+                    "name": "pluginId",
+                    "schema": {
+                        "type": "string"
+                    },
+                    "required": true,
+                    "description": "The ID of the plugin to be removed from favorites."
+                }
+            ],
+            "responses": {
+                "200": {
+                    "description": "Plugin removed from favorites successfully.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ApiResult"
+                            },
+                            "example": {
+                                "success": true,
+                                "message": "Removed plugin from favorites successfully.",
+                                "data": {
+                                    "id": "plugin123",
+                                    "name": "Code Formatter",
+                                    "description": "Formats code automatically.",
+                                    "version": "2.1.0"
+                                },
+                                "errors": []
+                            }
+                        }
+                    }
+                },
+                "404": {
+                    "description": "Favorite plugin not found.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ApiResult"
+                            },
+                            "example": {
+                                "success": false,
+                                "message": "Favorite plugin not found.",
+                                "data": null,
+                                "errors": []
+                            }
+                        }
+                    }
+                },
+                "500": {
+                    "description": "Internal server error occurred while removing plugin from favorites.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ApiResult"
+                            },
+                            "example": {
+                                "success": false,
+                                "message": "Failed to remove favorite plugin.",
+                                "data": null,
+                                "errors": []
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
 	"/api/v1/users/author-agreement": {
 		"post": {
 			"tags": [
