@@ -93,22 +93,63 @@ const getThemes = async (req: Request, res: Response) => {
 		}
 
 		// check if cache contains user favorites and return if so ; otherwise fetch from db
-		let userFavorites = await getUserFavoriteThemesFromCache(userId);
+		let userFavorites = await getUserFavoriteThemesFromCache(userId)
 		if (userFavorites === null) {
 			userFavorites = await getUserFavoriteThemesFromDb(userId);
 			saveUserFavoriteThemesToCache(userId, userFavorites);
 		}
+		const userFavoriteIds = new Set(userFavorites.map(item => item.id));
 
 		// reconcile themes with user favorites
 		const themesWithFavorites = themes.map((theme) => ({
 			...theme,
-			isFavorite: userFavorites.includes(theme.id),
+			isFavorite: userFavoriteIds.has(theme.id),
 		}));
 
 		sendSuccessResponse(res, 200, themesWithFavorites, "Themes fetched successfully.");
 	} catch (error) {
 		Logger.error("Error fetching themes with favorites:", error);
 		sendErrorResponse(res, 500, "Failed to fetch themes.");
+	}
+};
+
+/**
+ * Retrieves data for a specific theme.
+ *
+ * @param req request from call
+ * @param res response to call
+ *
+ * @returns data for specified theme on success, 404 if not found, and 500 error otherwise
+ */
+const getThemeById = async (req: Request, res: Response) => {
+	try {
+		const themeId = req.params.theme_id;
+
+		// fetch theme data from cache (if not found, it automatically pulls from db)
+		const result = await getThemeDataFromCache([themeId]);
+
+		// check if theme is found
+		if (!result) {
+			return sendErrorResponse(res, 404, `The theme ${themeId} was not found.`);
+		}
+
+		const themeData = result[0];
+
+		if (req.userData) {
+			const userId = req.userData.id;
+			let userFavorites = await getUserFavoriteThemesFromCache(userId)
+			if (userFavorites === null) {
+				userFavorites = await getUserFavoriteThemesFromDb(userId);
+				saveUserFavoriteThemesToCache(userId, userFavorites);
+			}
+			const userFavoriteIds = new Set(userFavorites.map(item => item.id));
+			themeData.isFavorite = userFavoriteIds.has(themeId);
+		}
+
+		sendSuccessResponse(res, 200, themeData, "Theme data fetched successfully.");
+	} catch (error) {
+		Logger.error(`Error fetching theme with id ${req.params.theme_id}:`, error);
+		sendErrorResponse(res, 500, "Failed to fetch theme data.");
 	}
 };
 
@@ -223,6 +264,7 @@ const unpublishTheme = async (req: Request, res: Response) => {
 export {
 	getThemes,
 	getThemesNoAuth,
+	getThemeById,
 	getThemeVersions,
 	publishTheme,
 	unpublishTheme

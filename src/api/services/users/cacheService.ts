@@ -1,6 +1,8 @@
 import { redisEphemeralClient } from "../../databases/redis";
 import { PluginData } from "../../interfaces/plugins/PluginData";
 import { ThemeData } from "../../interfaces/themes/ThemeData";
+import { getPluginDataFromCache } from "../plugins/cacheService";
+import { getThemeDataFromCache } from "../themes/cacheService";
 
 const USER_THEME_FAVORITES_CACHE_PREFIX = process.env.USER_THEME_FAVORITES_CACHE_PREFIX;
 const USER_THEME_OWNERSHIP_CACHE_PREFIX = process.env.USER_THEME_OWNERSHIP_CACHE_PREFIX;
@@ -14,27 +16,32 @@ const USER_PLUGIN_OWNERSHIP_CACHE_PREFIX = process.env.USER_PLUGIN_OWNERSHIP_CAC
  *
  * @returns array of theme ids matching user favorite themes
  */
-const getUserFavoriteThemesFromCache = async (userId: string): Promise<string[] | null> => {
+const getUserFavoriteThemesFromCache = async (userId: string): Promise<ThemeData[] | null> => {
 	const favoritesKey = `${USER_THEME_FAVORITES_CACHE_PREFIX}:${userId}`;
 	const themeIds = await redisEphemeralClient.get(favoritesKey);
 	if (themeIds === null) {
 		return null;
 	}
 
-	return JSON.parse(themeIds);
+	return getThemeDataFromCache(JSON.parse(themeIds));
 }
 
 /**
  * Saves user favorite themes to cache.
  *
  * @param userId id of user to save favorites for
- * @param themeIds id of favorite themes to save
+ * @param themes user favorited themes to save
  */
-const saveUserFavoriteThemesToCache = async (userId: string, themeIds: string[]) => {
+const saveUserFavoriteThemesToCache = async (userId: string, themes: ThemeData[]) => {
 	const favoritesKey = `${USER_THEME_FAVORITES_CACHE_PREFIX}:${userId}`;
-	redisEphemeralClient.set(favoritesKey, JSON.stringify(themeIds), { EX: 1800 });
+	redisEphemeralClient.set(favoritesKey, JSON.stringify(themes.map(theme => theme.id)), { EX: 1800 });
 }
 
+/**
+ * Invalidates user favorite themes cache.
+ *
+ * @param userId id of user to invalidate favorite themes for
+ */
 const invalidateUserFavoriteThemesCache = async (userId: string) => {
 	const favoritesKey = `${USER_THEME_FAVORITES_CACHE_PREFIX}:${userId}`;
 	redisEphemeralClient.del(favoritesKey);
@@ -47,23 +54,23 @@ const invalidateUserFavoriteThemesCache = async (userId: string) => {
  *
  * @returns array of theme ids matching user-owned themes
  */
-const getUserThemeOwnershipFromCache = async (userId: string) => {
+const getUserOwnedThemesFromCache = async (userId: string): Promise<ThemeData[] | null> => {
 	const ownershipKey = `${USER_THEME_OWNERSHIP_CACHE_PREFIX}:${userId}`;
 	const themeIds = await redisEphemeralClient.get(ownershipKey);
 	if (themeIds === null) {
 		return null;
 	}
 
-	return JSON.parse(themeIds);
+	return getThemeDataFromCache(JSON.parse(themeIds));
 }
 
 /**
  * Saves user-owned themes to cache.
  *
  * @param userId id of user to save owned themes for
- * @param themes array of owned themes to save
+ * @param themes user owned themes to save
  */
-const saveUserThemeOwnershipToCache = async (userId: string, themes: ThemeData[]) => {
+const saveUserOwnedThemesToCache = async (userId: string, themes: ThemeData[]) => {
 	const ownershipKey = `${USER_THEME_OWNERSHIP_CACHE_PREFIX}:${userId}`;
 	redisEphemeralClient.set(ownershipKey, JSON.stringify(themes.map(theme => theme.id)), { EX: 1800 });
 }
@@ -73,7 +80,7 @@ const saveUserThemeOwnershipToCache = async (userId: string, themes: ThemeData[]
  *
  * @param userId id of user to invalidate owned themes for
  */
-const invalidateUserThemeOwnershipCache = async (userId: string) => {
+const invalidateUserOwnedThemesCache = async (userId: string) => {
 	const ownershipKey = `${USER_THEME_OWNERSHIP_CACHE_PREFIX}:${userId}`;
 	redisEphemeralClient.del(ownershipKey);
 }
@@ -85,27 +92,32 @@ const invalidateUserThemeOwnershipCache = async (userId: string) => {
  *
  * @returns array of theme ids matching user favorite plugins
  */
-const getUserFavoritePluginsFromCache = async (userId: string): Promise<string[] | null> => {
+const getUserFavoritePluginsFromCache = async (userId: string): Promise<PluginData[] | null> => {
 	const favoritesKey = `${USER_PLUGIN_FAVORITES_CACHE_PREFIX}:${userId}`;
 	const pluginIds = await redisEphemeralClient.get(favoritesKey);
 	if (pluginIds === null) {
 		return null;
 	}
 
-	return JSON.parse(pluginIds);
+	return getPluginDataFromCache(JSON.parse(pluginIds));
 }
 
 /**
  * Saves user favorite plugins to cache.
  *
  * @param userId id of user to save favorites for
- * @param pluginIds id of favorite plugins to save
+ * @param plugins user favorite plugins to save
  */
-const saveUserFavoritePluginsToCache = async (userId: string, pluginIds: string[]) => {
+const saveUserFavoritePluginsToCache = async (userId: string, plugins: PluginData[]) => {
 	const favoritesKey = `${USER_PLUGIN_FAVORITES_CACHE_PREFIX}:${userId}`;
-	redisEphemeralClient.set(favoritesKey, JSON.stringify(pluginIds), { EX: 1800 });
+	redisEphemeralClient.set(favoritesKey, JSON.stringify(plugins.map(plugin => plugin.id)), { EX: 1800 });
 }
 
+/**
+ * Invalidates user favorite plugins cache.
+ *
+ * @param userId id of user to invalidate favorite plugins for
+ */
 const invalidateUserFavoritePluginsCache = async (userId: string) => {
 	const favoritesKey = `${USER_PLUGIN_FAVORITES_CACHE_PREFIX}:${userId}`;
 	redisEphemeralClient.del(favoritesKey);
@@ -116,25 +128,25 @@ const invalidateUserFavoritePluginsCache = async (userId: string) => {
  *
  * @param userId id of user to retrieve owned plugins for
  *
- * @returns array of theme ids matching user-owned plugins
+ * @returns array of plugin ids matching user-owned plugins
  */
-const getUserPluginOwnershipFromCache = async (userId: string) => {
+const getUserOwnedPluginsFromCache = async (userId: string): Promise<PluginData[] | null> => {
 	const ownershipKey = `${USER_PLUGIN_OWNERSHIP_CACHE_PREFIX}:${userId}`;
 	const pluginIds = await redisEphemeralClient.get(ownershipKey);
 	if (pluginIds === null) {
 		return null;
 	}
 
-	return JSON.parse(pluginIds);
+	return getPluginDataFromCache(JSON.parse(pluginIds));
 }
 
 /**
  * Saves user-owned plugins to cache.
  *
  * @param userId id of user to save owned plugins for
- * @param themes array of owned plugins to save
+ * @param themes user owned plugins to save
  */
-const saveUserPluginOwnershipToCache = async (userId: string, plugins: PluginData[]) => {
+const saveUserOwnedPluginsToCache = async (userId: string, plugins: PluginData[]) => {
 	const ownershipKey = `${USER_PLUGIN_OWNERSHIP_CACHE_PREFIX}:${userId}`;
 	redisEphemeralClient.set(ownershipKey, JSON.stringify(plugins.map(plugin => plugin.id)), { EX: 1800 });
 }
@@ -144,7 +156,7 @@ const saveUserPluginOwnershipToCache = async (userId: string, plugins: PluginDat
  *
  * @param userId id of user to invalidate owned plugins for
  */
-const invalidateUserPluginOwnershipCache = async (userId: string) => {
+const invalidateUserOwnedPluginsCache = async (userId: string) => {
 	const ownershipKey = `${USER_PLUGIN_OWNERSHIP_CACHE_PREFIX}:${userId}`;
 	redisEphemeralClient.del(ownershipKey);
 }
@@ -153,13 +165,13 @@ export {
 	getUserFavoriteThemesFromCache,
 	saveUserFavoriteThemesToCache,
 	invalidateUserFavoriteThemesCache,
-	getUserThemeOwnershipFromCache,
-	saveUserThemeOwnershipToCache,
-	invalidateUserThemeOwnershipCache,
+	getUserOwnedThemesFromCache,
+	saveUserOwnedThemesToCache,
+	invalidateUserOwnedThemesCache,
 	getUserFavoritePluginsFromCache,
 	saveUserFavoritePluginsToCache,
 	invalidateUserFavoritePluginsCache,
-	getUserPluginOwnershipFromCache,
-	saveUserPluginOwnershipToCache,
-	invalidateUserPluginOwnershipCache,
+	getUserOwnedPluginsFromCache,
+	saveUserOwnedPluginsToCache,
+	invalidateUserOwnedPluginsCache,
 }

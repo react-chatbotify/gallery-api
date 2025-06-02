@@ -5,8 +5,9 @@ import {
 	addUserFavoriteTheme,
 	getUserFavoritePlugins,
 	getUserFavoriteThemes,
+	getUserOwnedPlugins,
 	getUserProfile,
-	getUserThemes,
+	getUserOwnedThemes,
 	removeUserFavoritePlugin,
 	removeUserFavoriteTheme,
 	setUserAcceptAuthorAgreement,
@@ -19,7 +20,7 @@ const router = express.Router();
 router.get("/profile", checkUserSession, getUserProfile);
 
 // retrieves user themes
-router.get("/themes", checkUserSession, getUserThemes);
+router.get("/themes", checkUserSession, getUserOwnedThemes);
 
 // retrieves user favorited themes
 router.get("/themes/favorited", checkUserSession, getUserFavoriteThemes);
@@ -29,6 +30,9 @@ router.post("/themes/favorited", checkUserSession, addUserFavoriteTheme);
 
 // unfavorites a theme for user
 router.delete("/themes/favorited", checkUserSession, removeUserFavoriteTheme)
+
+// retrieves user plugins
+router.get("/plugins", checkUserSession, getUserOwnedPlugins);
 
 // retrieves user favorited plugins
 router.get("/plugins/favorited", checkUserSession, getUserFavoritePlugins);

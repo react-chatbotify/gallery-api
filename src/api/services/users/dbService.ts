@@ -1,21 +1,32 @@
 import { FavoritePlugin, FavoriteTheme, Plugin, Theme } from "../../databases/sql/models";
 import { sequelize } from "../../databases/sql/sql";
+import { PluginData } from "../../interfaces/plugins/PluginData";
+import { ThemeData } from "../../interfaces/themes/ThemeData";
+import Logger from "../../logger";
+import { invalidatePluginDataCache, invalidatePluginSearchCache } from "../plugins/cacheService";
+import { invalidateThemeDataCache, invalidateThemeSearchCache } from "../themes/cacheService";
+import { invalidateUserFavoritePluginsCache, invalidateUserFavoriteThemesCache } from "./cacheService";
 
 /**
  * Retrieves user favorite themes from database.
  *
  * @param userId id of user to retrieve favorites for
  *
- * @returns array of ids representing user favorite themes
+ * @returns array of user favorite themes
  */
-const getUserFavoriteThemesFromDb = async (userId: string): Promise<string[]> => {
-	const userFavorites = await FavoriteTheme.findAll({
-		where: { userId },
-		attributes: ["themeId"]
-	});
+const getUserFavoriteThemesFromDb = async (userId: string): Promise<ThemeData[]> => {
+    const userFavorites = await FavoriteTheme.findAll({
+        where: { userId },
+        include: [{
+            model: Theme,
+            required: true
+        }],
+        raw: true,
+        nest: true
+    }) as unknown as { Theme: ThemeData }[];
 
-	return userFavorites.map(userFavorite => userFavorite.dataValues.themeId);
-}
+    return userFavorites.map(favorite => favorite.Theme);
+};
 
 /**
  * Adds user favorite theme to database.
@@ -50,6 +61,20 @@ const addUserFavoriteThemeToDb = async (userId: string, themeId: string) => {
 			themeId: themeId
 		}, { transaction });
 
+		// invalidate cache asynchronously
+		void (async () => {
+			try {
+				invalidateThemeDataCache(themeId);
+				invalidateUserFavoriteThemesCache(userId);
+
+				// todo: this is to ensure favorites sorting is always accurate, but this is not performant
+				// should explore better options in future
+				invalidateThemeSearchCache();
+			} catch (error) {
+				Logger.error("Error invalidating cache:", error);
+			}
+		})();
+
 		// increment the favorites count in the theme table
 		await theme.increment("favoritesCount", { by: 1, transaction });
 	});
@@ -79,6 +104,20 @@ const removeUserFavoriteThemeFromDb = async (userId: string, themeId: string) =>
 		// remove favorite theme
 		await existingFavorite.destroy({ transaction });
 
+		// invalidate cache asynchronously
+		void (async () => {
+			try {
+				invalidateThemeDataCache(themeId);
+				invalidateUserFavoriteThemesCache(userId);
+
+				// todo: this is to ensure favorites sorting is always accurate, but this is not performant
+				// should explore better options in future
+				invalidateThemeSearchCache();
+			} catch (error) {
+				Logger.error("Error invalidating cache:", error);
+			}
+		})();
+
 		// decrement the favorites count in the theme table
 		const theme = await Theme.findByPk(themeId, { transaction });
 		if (theme) {
@@ -94,13 +133,13 @@ const removeUserFavoriteThemeFromDb = async (userId: string, themeId: string) =>
  *
  * @returns array of ids representing user-owned themes
  */
-const getUserThemeOwnershipFromDb = async (userId: string): Promise<string[]> => {
+const getUserOwnedThemesFromDb = async (userId: string): Promise<ThemeData[]> => {
 	const userOwnedThemes = await Theme.findAll({
 		where: { userId },
-		attributes: ["themeId"]
-	});
+		raw: true,
+	}) as unknown as ThemeData[];
 
-	return userOwnedThemes.map(userOwnedTheme => userOwnedTheme.dataValues.themeId);
+	return userOwnedThemes;
 }
 
 /**
@@ -108,16 +147,21 @@ const getUserThemeOwnershipFromDb = async (userId: string): Promise<string[]> =>
  *
  * @param userId id of user to retrieve favorites for
  *
- * @returns array of ids representing user favorite plugins
+ * @returns array of user favorite plugins
  */
-const getUserFavoritePluginsFromDb = async (userId: string): Promise<string[]> => {
-	const userFavorites = await FavoritePlugin.findAll({
-		where: { userId },
-		attributes: ["pluginId"]
-	});
+const getUserFavoritePluginsFromDb = async (userId: string): Promise<PluginData[]> => {
+    const userFavorites = await FavoritePlugin.findAll({
+        where: { userId },
+        include: [{
+            model: Plugin,
+            required: true
+        }],
+        raw: true,
+        nest: true
+    }) as unknown as { Plugin: PluginData }[];
 
-	return userFavorites.map(userFavorite => userFavorite.dataValues.pluginId);
-}
+    return userFavorites.map(favorite => favorite.Plugin);
+};
 
 /**
  * Adds user favorite plugin to database.
@@ -152,6 +196,20 @@ const addUserFavoritePluginToDb = async (userId: string, pluginId: string) => {
 			pluginId: pluginId
 		}, { transaction });
 
+		// invalidate cache asynchronously
+		void (async () => {
+			try {
+				invalidatePluginDataCache(pluginId);
+				invalidateUserFavoritePluginsCache(userId);
+
+				// todo: this is to ensure favorites sorting is always accurate, but this is not performant
+				// should explore better options in future
+				invalidatePluginSearchCache();
+			} catch (error) {
+				Logger.error("Error invalidating cache:", error);
+			}
+		})();
+
 		// increment the favorites count in the theme table
 		await plugin.increment("favoritesCount", { by: 1, transaction });
 	});
@@ -181,6 +239,20 @@ const removeUserFavoritePluginFromDb = async (userId: string, pluginId: string) 
 		// remove favorite plugin
 		await existingFavorite.destroy({ transaction });
 
+		// invalidate cache asynchronously
+		void (async () => {
+			try {
+				invalidatePluginDataCache(pluginId);
+				invalidateUserFavoritePluginsCache(userId);
+
+				// todo: this is to ensure favorites sorting is always accurate, but this is not performant
+				// should explore better options in future
+				invalidatePluginSearchCache();
+			} catch (error) {
+				Logger.error("Error invalidating cache:", error);
+			}
+		})();
+
 		// decrement the favorites count in the plugin table
 		const plugin = await Plugin.findByPk(pluginId, { transaction });
 		if (plugin) {
@@ -196,22 +268,22 @@ const removeUserFavoritePluginFromDb = async (userId: string, pluginId: string) 
  *
  * @returns array of ids representing user-owned plugins
  */
-const getUserPluginOwnershipFromDb = async (userId: string): Promise<string[]> => {
+const getUserOwnedPluginsFromDb = async (userId: string): Promise<PluginData[]> => {
 	const userOwnedPlugins = await Plugin.findAll({
-		where: { userId },
-		attributes: ["pluginId"]
-	});
+        where: { userId },
+        raw: true,
+    }) as unknown as PluginData[];
 
-	return userOwnedPlugins.map(userOwnedPlugin => userOwnedPlugin.dataValues.pluginId);
+    return userOwnedPlugins;
 }
 
 export {
 	getUserFavoriteThemesFromDb,
 	addUserFavoriteThemeToDb,
 	removeUserFavoriteThemeFromDb,
-	getUserThemeOwnershipFromDb,
+	getUserOwnedThemesFromDb,
 	getUserFavoritePluginsFromDb,
 	addUserFavoritePluginToDb,
 	removeUserFavoritePluginFromDb,
-	getUserPluginOwnershipFromDb,
+	getUserOwnedPluginsFromDb,
 }

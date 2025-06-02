@@ -66,7 +66,7 @@ const invalidateThemeSearchCache = async () => {
 }
 
 /**
- * Retrieves data of themes from cache.
+ * Retrieves data of themes from cache and for missing data, grab from db.
  *
  * @param themeIds ids of themes to retrieve data for
  *

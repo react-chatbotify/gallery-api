@@ -1,10 +1,11 @@
 import { Op } from "sequelize";
 
 import { invalidatePluginDataCache, invalidatePluginSearchCache, invalidatePluginVersionsCache } from "./cacheService";
-import { invalidateUserPluginOwnershipCache } from "../users/cacheService";
+import { invalidateUserOwnedPluginsCache } from "../users/cacheService";
 import { Plugin } from "../../databases/sql/models";
 import { sequelize } from "../../databases/sql/sql";
 import { PluginData } from "../../interfaces/plugins/PluginData";
+import Logger from "../../logger";
 
 /**
  * Retrieves plugin data from database for given plugin ids.
@@ -100,10 +101,16 @@ const addPluginDataToDb = async (
 	});
 
 	// invalidate cache when a plugin is added
-	invalidatePluginSearchCache();
-	invalidatePluginDataCache(pluginId);
-	invalidatePluginVersionsCache(pluginId);
-	invalidateUserPluginOwnershipCache(userId);
+	void (async () => {
+		try {
+			invalidatePluginSearchCache();
+			invalidatePluginDataCache(pluginId);
+			invalidatePluginVersionsCache(pluginId);
+			invalidateUserOwnedPluginsCache(userId);
+		} catch (error) {
+			Logger.error("Error invalidating cache:", error);
+		}
+	})();
 
 	return plugin;
 }
@@ -131,10 +138,16 @@ const deletePluginDataFromDb = async (pluginId: string) => {
 		await existingPlugin.destroy({ transaction });
 
 		// invalidate cache when a plugin is removed
-		invalidatePluginSearchCache();
-		invalidatePluginDataCache(pluginId);
-		invalidatePluginVersionsCache(pluginId);
-		invalidateUserPluginOwnershipCache(existingPlugin.dataValues.userId);
+		void (async () => {
+			try {
+				invalidatePluginSearchCache();
+				invalidatePluginDataCache(pluginId);
+				invalidatePluginVersionsCache(pluginId);
+				invalidateUserOwnedPluginsCache(existingPlugin.dataValues.userId);
+			} catch (error) {
+				Logger.error("Error invalidating cache:", error);
+			}
+		})();
 
 		return existingPlugin;
 	});

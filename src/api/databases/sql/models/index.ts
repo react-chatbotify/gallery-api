@@ -10,35 +10,35 @@ import FavoritePlugin from "./FavoritePlugin";
 
 // theme belongs to a user, but permitted to be empty (for direct theme contributions to github repository)
 // todo: perhaps the sync job can attempt to reconcile theme ownership each time it is run based on meta.json author?
-Theme.belongsTo(User, { foreignKey: "userId" });
+Theme.belongsTo(User, { foreignKey: "user_id" });
 
-ThemeVersion.belongsTo(Theme, { foreignKey: "themeId" });
+ThemeVersion.belongsTo(Theme, { foreignKey: "theme_id" });
 
 // contains only user id and theme id to associate user theme favorites
 FavoriteTheme.belongsTo(User, {
-	foreignKey: "userId",
+	foreignKey: "user_id",
 	onDelete: "CASCADE",
 });
 FavoriteTheme.belongsTo(Theme, {
-	foreignKey: "themeId",
+	foreignKey: "theme_id",
 	onDelete: "CASCADE",
 });
-User.belongsToMany(Theme, { through: FavoriteTheme, foreignKey: "userId" });
-Theme.belongsToMany(User, { through: FavoriteTheme, foreignKey: "themeId" });
+User.belongsToMany(Theme, { through: FavoriteTheme, foreignKey: "user_id" });
+Theme.belongsToMany(User, { through: FavoriteTheme, foreignKey: "theme_id" });
 
-Plugin.belongsTo(User, { foreignKey: "userId" });
+Plugin.belongsTo(User, { foreignKey: "user_id" });
 
 // contains only user id and theme id to associate user plugin favorites
 FavoritePlugin.belongsTo(User, {
-	foreignKey: "userId",
+	foreignKey: "user_id",
 	onDelete: "CASCADE",
 });
 FavoritePlugin.belongsTo(Plugin, {
-	foreignKey: "pluginId",
+	foreignKey: "plugin_id",
 	onDelete: "CASCADE",
 });
-User.belongsToMany(Plugin, { through: FavoritePlugin, foreignKey: "userId" });
-Plugin.belongsToMany(User, { through: FavoritePlugin, foreignKey: "pluginId" });
+User.belongsToMany(Plugin, { through: FavoritePlugin, foreignKey: "user_id" });
+Plugin.belongsToMany(User, { through: FavoritePlugin, foreignKey: "plugin_id" });
 
 export {
 	LinkedAuthProvider,

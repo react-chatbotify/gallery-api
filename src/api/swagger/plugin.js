@@ -82,6 +82,73 @@ const pluginPaths = {
 					}
 			}
 	},
+	"/api/v1/plugins/{plugin_id}": {
+		"get": {
+			"tags": ["Plugins Module"],
+			"summary": "Retrieves data for a specific plugin.",
+			"description": "Fetches details for a specific plugin by its ID. Authentication is optional but provides additional user-specific data if present.",
+			"parameters": [
+				{
+					"in": "path",
+					"name": "plugin_id",
+					"schema": { "type": "string" },
+					"required": true,
+					"description": "The ID of the plugin to retrieve."
+				}
+			],
+			"responses": {
+				"200": {
+					"description": "Plugin data retrieved successfully.",
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/ApiResult" },
+							"example": {
+								"success": true,
+								"message": "Plugin fetched successfully.",
+								"data": {
+									"id": "plugin-1",
+									"name": "Example Plugin",
+									"description": "A sample plugin.",
+									"version": "1.0.0",
+									"createdAt": "2024-08-07T18:43:21.000Z",
+									"updatedAt": "2024-08-07T18:43:21.000Z"
+								},
+								"errors": []
+							}
+						}
+					}
+				},
+				"404": {
+					"description": "Plugin not found.",
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/ApiResult" },
+							"example": {
+								"success": false,
+								"message": "Plugin not found.",
+								"data": null,
+								"errors": []
+							}
+						}
+					}
+				},
+				"500": {
+					"description": "Internal server error occurred while fetching the plugin.",
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/ApiResult" },
+							"example": {
+								"success": false,
+								"message": "Failed to fetch plugin, please try again.",
+								"data": null,
+								"errors": []
+							}
+						}
+					}
+				}
+			}
+		}
+	},
 	"/api/v1/plugins/versions": {
 			"get": {
 					"tags": ["Plugins Module"],

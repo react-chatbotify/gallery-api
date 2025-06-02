@@ -51,6 +51,14 @@ Plugin.init(
 			defaultValue: DataTypes.NOW,
 			field: 'updated_at',
 		},
+		userId: {
+			type: DataTypes.UUID,
+			field: "user_id",
+			references: {
+				model: "Users",
+				key: "id"
+			},
+		},
 	},
 	{
 		sequelize,

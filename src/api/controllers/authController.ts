@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { fetchTokensWithCode, getUserData, saveUserTokens } from "../services/authentication/authentication";
 import { encrypt } from "../services/cryptoService";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/responseUtils";
+import Logger from "../logger";
 
 /**
  * Handles the callback when a user authorizes or rejects the application.
@@ -13,17 +14,21 @@ import { sendErrorResponse, sendSuccessResponse } from "../utils/responseUtils";
  * @returns redirects user to login process page on frontend on success, error page otherwise
  */
 const handleCallback = async (req: Request, res: Response) => {
+	const frontendBaseUrl = req.query.redirect_url;
+
 	// todo: re-direct user to a more specific error page instead of a generic one - need to liase with frontend team
 	// todo: note that exact error message may differ based on provider
-	if (req.query.error === "access_denied") {
-		return res.redirect(`${process.env.FRONTEND_WEBSITE_URL}/error`);
+	if (!frontendBaseUrl || req.query.error === "access_denied") {
+		return res.redirect(`${frontendBaseUrl}/error`);
 	}
+
 	try {
 		const key = encrypt(req.query.code as string);
-		res.redirect(`${process.env.FRONTEND_WEBSITE_URL}/login/process?provider=${process.env.GITHUB_LOGIN_PROVIDER}&key=${key}`);
-	} catch {
+		res.redirect(`${frontendBaseUrl}/login/process?provider=${process.env.GITHUB_LOGIN_PROVIDER}&key=${key}`);
+	} catch (error) {
+		Logger.error("Unable to handle login callback from user: ", error);
 		// todo: re-direct user to a more specific error page instead of a generic one - need to liase with frontend team
-		return res.redirect(`${process.env.FRONTEND_WEBSITE_URL}/error`);
+		return res.redirect(`${frontendBaseUrl}/error`);
 	}
 };
 
@@ -64,7 +69,28 @@ const handleLoginProcess = async (req: Request, res: Response) => {
 	return sendSuccessResponse(res, 200, userData, "Login successful.");
 };
 
+/**
+ * Handles user logout by clearing cookies.
+ * 
+ * @param req request from call
+ * @param res response to call
+ * 
+ * @returns user data on success, 401 unauthorized otherwise
+ */
+const handleLogout = async (req: Request, res: Response) => {
+	res.clearCookie("connect.sid");
+
+	req.session.destroy((err) => {
+		if (err) {
+			return sendErrorResponse(res, 500, err.message);
+		}
+
+		return sendSuccessResponse(res, 200, {}, "Logout successful.");
+	})
+}
+
 export {
 	handleCallback,
-	handleLoginProcess
+	handleLoginProcess,
+	handleLogout,
 };

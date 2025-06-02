@@ -4,6 +4,7 @@ import multer from "multer";
 import {
 	getPlugins,
 	getPluginsNoAuth,
+	getPluginById,
 	getPluginVersions,
 	publishPlugin,
 	unpublishPlugin,
@@ -45,6 +46,15 @@ router.get("/", async (req, res) => {
 	} else {
 		getPluginsNoAuth(req, res);
 	}
+});
+
+// retrieves data for a specific plugin
+router.get('/:plugin_id', async (req, res) => {
+	const userData = await getUserData(req.sessionID, req.session.userId || null, req.session.provider as string);
+	if (userData) {
+		req.userData = userData;
+	}
+	getPluginById(req, res);
 });
 
 // retrieves plugin versions

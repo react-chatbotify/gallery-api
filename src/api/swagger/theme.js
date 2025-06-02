@@ -83,6 +83,74 @@ const themePaths = {
 			}
 		}
 	},
+	"/api/v1/themes/{theme_id}": {
+		"get": {
+			"tags": ["Themes Module"],
+			"summary": "Retrieves data for a specific theme.",
+			"description": "Fetches details for a specific theme by its ID. Authentication is optional but provides additional user-specific data if present.",
+			"parameters": [
+				{
+					"in": "path",
+					"name": "theme_id",
+					"schema": { "type": "string" },
+					"required": true,
+					"description": "The ID of the theme to retrieve."
+				}
+			],
+			"responses": {
+				"200": {
+					"description": "Theme data retrieved successfully.",
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/ApiResult" },
+							"example": {
+								"success": true,
+								"message": "Theme fetched successfully.",
+								"data": {
+									"id": "terminal",
+									"name": "Terminal",
+									"description": "For the geeks!",
+									"favoritesCount": "10",
+									"createdAt": "2024-08-07T18:43:21.000Z",
+									"updatedAt": "2024-08-07T18:43:21.000Z",
+									"userId": null
+								},
+								"errors": []
+							}
+						}
+					}
+				},
+				"404": {
+					"description": "Theme not found.",
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/ApiResult" },
+							"example": {
+								"success": false,
+								"message": "Theme not found.",
+								"data": null,
+								"errors": []
+							}
+						}
+					}
+				},
+				"500": {
+					"description": "Internal server error occurred while fetching the theme.",
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/ApiResult" },
+							"example": {
+								"success": false,
+								"message": "Failed to fetch theme, please try again.",
+								"data": null,
+								"errors": []
+							}
+						}
+					}
+				}
+			}
+		}
+	},
 	"/api/v1/themes/versions": {
 		"get": {
 			"tags": ["Themes Module"],

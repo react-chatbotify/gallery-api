@@ -2,6 +2,7 @@ import express from 'express';
 import multer from 'multer';
 
 import {
+	getThemeById,
 	getThemes,
 	getThemesNoAuth,
 	getThemeVersions,
@@ -46,6 +47,15 @@ router.get('/', async (req, res) => {
 	} else {
 		getThemesNoAuth(req, res);
 	}
+});
+
+// retrieves data for a specific theme
+router.get('/:theme_id', async (req, res) => {
+	const userData = await getUserData(req.sessionID, req.session.userId || null, req.session.provider as string);
+	if (userData) {
+		req.userData = userData;
+	}
+	getThemeById(req, res);
 });
 
 // retrieves theme versions

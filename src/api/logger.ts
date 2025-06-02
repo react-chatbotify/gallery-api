@@ -21,8 +21,8 @@ const colors = {
 // Show different color for different severity levels.
 winston.addColors(colors);
 
-const environment = process.env.NODE_ENV || "development";
-const logLevel = process.env.LOG_LEVEL || "info";
+const environment = process.env.NODE_ENV?.toLowerCase() || "development";
+const logLevel = process.env.LOG_LEVEL?.toLowerCase() || "info";
 
 const logFilePath = path.join(__dirname, "../../logs", "all.log");
 const errorLogFilePath = path.join(__dirname, "../../logs", "error.log")

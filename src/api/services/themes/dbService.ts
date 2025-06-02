@@ -1,11 +1,12 @@
 import { Op } from "sequelize";
 
 import { invalidateThemeDataCache, invalidateThemeSearchCache, invalidateThemeVersionsCache } from "./cacheService";
-import { invalidateUserThemeOwnershipCache } from "../users/cacheService";
+import { invalidateUserOwnedThemesCache } from "../users/cacheService";
 import { Theme, ThemeJobQueue, ThemeVersion } from "../../databases/sql/models";
 import { sequelize } from "../../databases/sql/sql";
 import { ThemeData } from "../../interfaces/themes/ThemeData";
 import { ThemeVersionData } from "../../interfaces/themes/ThemeVersionData";
+import Logger from "../../logger";
 
 /**
  * Retrieves theme data from database for given theme ids.
@@ -172,10 +173,16 @@ const deleteThemeDataFromDb = async (themeId: string) => {
 		await existingTheme.destroy({ transaction });
 
 		// invalidate cache when a theme is removed
-		invalidateThemeSearchCache();
-		invalidateThemeDataCache(themeId);
-		invalidateThemeVersionsCache(themeId);
-		invalidateUserThemeOwnershipCache(existingTheme.dataValues.userId);
+		void (async () => {
+			try {
+				invalidateThemeSearchCache();
+				invalidateThemeDataCache(themeId);
+				invalidateThemeVersionsCache(themeId);
+				invalidateUserOwnedThemesCache(existingTheme.dataValues.userId);
+			} catch (error) {
+				Logger.error("Error invalidating cache:", error);
+			}
+		})();
 
 		return existingTheme;
 	});

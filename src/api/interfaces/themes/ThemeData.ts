@@ -5,6 +5,7 @@ interface ThemeData {
 	description: string;
 	favoritesCount: number;
 	versionsCount: number;
+	isFavorite?: boolean;
 }
 
 export {

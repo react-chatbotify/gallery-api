@@ -98,17 +98,58 @@ const getPlugins = async (req: Request, res: Response) => {
 			userFavorites = await getUserFavoritePluginsFromDb(userId);
 			saveUserFavoritePluginsToCache(userId, userFavorites);
 		}
+		const userFavoriteIds = new Set(userFavorites.map(item => item.id));
 
 		// reconcile plugins with user favorites
 		const pluginsWithFavorites = plugins.map((plugin) => ({
 			...plugin,
-			isFavorite: userFavorites.includes(plugin.id),
+			isFavorite: userFavoriteIds.has(plugin.id),
 		}));
 
 		sendSuccessResponse(res, 200, pluginsWithFavorites, "Plugins fetched successfully.");
 	} catch (error) {
 		Logger.error("Error fetching plugins with favorites:", error);
 		sendErrorResponse(res, 500, "Failed to fetch plugins.");
+	}
+};
+
+/**
+ * Retrieves data for a specific plugin.
+ *
+ * @param req request from call
+ * @param res response to call
+ *
+ * @returns data for specified plugin on success, 404 if not found, and 500 error otherwise
+ */
+const getPluginById = async (req: Request, res: Response) => {
+	try {
+		const pluginId = req.params.plugin_id;
+
+		// fetch plugin data from cache (if not found, it automatically pulls from db)
+		const result = await getPluginDataFromCache([pluginId]);
+
+		// check if plugin is found
+		if (!result) {
+			return sendErrorResponse(res, 404, `The plugin ${pluginId} was not found.`);
+		}
+
+		const pluginData = result[0];
+
+		if (req.userData) {
+			const userId = req.userData.id;
+			let userFavorites = await getUserFavoritePluginsFromCache(userId)
+			if (userFavorites === null) {
+				userFavorites = await getUserFavoritePluginsFromDb(userId);
+				saveUserFavoritePluginsToCache(userId, userFavorites);
+			}
+			const userFavoriteIds = new Set(userFavorites.map(item => item.id));
+			pluginData.isFavorite = userFavoriteIds.has(pluginId);
+		}
+
+		sendSuccessResponse(res, 200, pluginData, "Plugin data fetched successfully.");
+	} catch (error) {
+		Logger.error(`Error fetching plugin with id ${req.params.plugin_id}:`, error);
+		sendErrorResponse(res, 500, "Failed to fetch plugin data.");
 	}
 };
 
@@ -215,6 +256,7 @@ const unpublishPlugin = async (req: Request, res: Response) => {
 export {
 	getPlugins,
 	getPluginsNoAuth,
+	getPluginById,
 	getPluginVersions,
 	publishPlugin,
 	unpublishPlugin

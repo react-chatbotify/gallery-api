@@ -1,24 +1,23 @@
 import { Request, Response } from "express";
 
 import { checkIsAdminUser } from "../services/authorization";
-import { invalidatePluginDataCache } from "../services/plugins/cacheService";
-import { invalidateThemeDataCache } from "../services/themes/cacheService";
 import {
 	getUserFavoritePluginsFromCache,
 	getUserFavoriteThemesFromCache,
-	getUserThemeOwnershipFromCache,
-	invalidateUserFavoritePluginsCache,
-	invalidateUserFavoriteThemesCache,
+	getUserOwnedPluginsFromCache,
+	getUserOwnedThemesFromCache,
 	saveUserFavoritePluginsToCache,
 	saveUserFavoriteThemesToCache,
-	saveUserThemeOwnershipToCache
+	saveUserOwnedPluginsToCache,
+	saveUserOwnedThemesToCache
 } from "../services/users/cacheService";
 import {
 	addUserFavoritePluginToDb,
 	addUserFavoriteThemeToDb,
 	getUserFavoritePluginsFromDb,
 	getUserFavoriteThemesFromDb,
-	getUserThemeOwnershipFromDb,
+	getUserOwnedPluginsFromDb,
+	getUserOwnedThemesFromDb,
 	removeUserFavoritePluginFromDb,
 	removeUserFavoriteThemeFromDb
 } from "../services/users/dbService";
@@ -36,7 +35,7 @@ import Logger from "../logger";
  */
 const getUserProfile = async (req: Request, res: Response) => {
 	const userData = req.userData;
-	const queryUserId = req.query.userId as string;
+	const queryUserId = req.query.userId as string ?? userData.id;
 	const sessionUserId = req.session.userId;
 
 	// if requesting for own data, allow
@@ -60,10 +59,12 @@ const getUserProfile = async (req: Request, res: Response) => {
  *
  * @returns list of user's themes if successful, 403 otherwise
  */
-const getUserThemes = async (req: Request, res: Response) => {
+const getUserOwnedThemes = async (req: Request, res: Response) => {
 	const userData = req.userData;
-	const queryUserId = req.query.userId as string;
+	const queryUserId = req.query.userId as string ?? userData.id;
 	const sessionUserId = req.session.userId;
+
+	// todo: add pagination in future
 
 	// if queried user id does not match or requesting user and requesting user is not admin, deny
 	if (queryUserId !== sessionUserId && !checkIsAdminUser(userData)) {
@@ -72,14 +73,16 @@ const getUserThemes = async (req: Request, res: Response) => {
 
 	try {
 		// check if cache contains user ownership and return if so ; otherwise fetch from db
-		let userOwnedThemes = await getUserThemeOwnershipFromCache(queryUserId);
+		let userOwnedThemes = await getUserOwnedThemesFromCache(queryUserId);
+
 		if (userOwnedThemes === null) {
-			userOwnedThemes = await getUserThemeOwnershipFromDb(queryUserId);
-			saveUserThemeOwnershipToCache(userData.id, userOwnedThemes);
+			userOwnedThemes = await getUserOwnedThemesFromDb(queryUserId);
+			saveUserOwnedThemesToCache(userData.id, userOwnedThemes);
 		}
 
 		return sendSuccessResponse(res, 200, userOwnedThemes, "User owned themes fetched successfully.");
-	} catch {
+	} catch (error) {
+		Logger.error("Error fetching owned themes:", error);
 		return sendErrorResponse(res, 500, "Failed to fetch user owned themes.");
 	}
 };
@@ -94,8 +97,10 @@ const getUserThemes = async (req: Request, res: Response) => {
  */
 const getUserFavoriteThemes = async (req: Request, res: Response) => {
 	const userData = req.userData;
-	const queryUserId = req.query.userId as string;
+	const queryUserId = req.query.userId as string ?? userData.id;
 	const sessionUserId = req.session.userId;
+
+	// todo: add pagination in future
 
 	// if queried user id does not match or requesting user and requesting user is not admin, deny
 	if (queryUserId !== sessionUserId && !checkIsAdminUser(userData)) {
@@ -111,7 +116,8 @@ const getUserFavoriteThemes = async (req: Request, res: Response) => {
 		}
 
 		return sendSuccessResponse(res, 200, userFavorites, "User favorite themes fetched successfully.");
-	} catch {
+	} catch (error) {
+		Logger.error("Error fetching favorite themes:", error);
 		return sendErrorResponse(res, 500, "Failed to fetch user favorite themes.");
 	}
 };
@@ -130,8 +136,6 @@ const addUserFavoriteTheme = async (req: Request, res: Response) => {
 
 	try {
 		await addUserFavoriteThemeToDb(userData.id, themeId);
-		invalidateThemeDataCache(themeId);
-		invalidateUserFavoriteThemesCache(userData.id);
 		sendSuccessResponse(res, 201, {}, "Added theme to favorites successfully.");
 	} catch (error) {
 		Logger.error("Error adding favorite theme:", error);
@@ -152,13 +156,46 @@ const removeUserFavoriteTheme = async (req: Request, res: Response) => {
 	const themeId = req.query.themeId as string;
 
 	try {
-		removeUserFavoriteThemeFromDb(userData.id, themeId);
-		invalidateThemeDataCache(themeId);
-		invalidateUserFavoriteThemesCache(userData.id);
+		await removeUserFavoriteThemeFromDb(userData.id, themeId);
 		sendSuccessResponse(res, 200, {}, "Removed theme from favorites successfully.");
 	} catch (error) {
 		Logger.error("Error removing favorite theme:", error);
 		sendErrorResponse(res, 500, "Failed to remove favorite theme.");
+	}
+};
+
+/**
+ * Retrieves plugins belonging to the user.
+ *
+ * @param req request from call
+ * @param res response to call
+ *
+ * @returns list of user's plugins if successful, 403 otherwise
+ */
+const getUserOwnedPlugins = async (req: Request, res: Response) => {
+	const userData = req.userData;
+	const queryUserId = req.query.userId as string ?? userData.id;
+	const sessionUserId = req.session.userId;
+
+	// todo: add pagination in future
+
+	// if queried user id does not match or requesting user and requesting user is not admin, deny
+	if (queryUserId !== sessionUserId && !checkIsAdminUser(userData)) {
+		return sendErrorResponse(res, 403, "Unauthorized access.");
+	}
+
+	try {
+		// check if cache contains user ownership and return if so ; otherwise fetch from db
+		let userOwnedPlugins = await getUserOwnedPluginsFromCache(queryUserId);
+		if (userOwnedPlugins === null) {
+			userOwnedPlugins = await getUserOwnedPluginsFromDb(queryUserId);
+			saveUserOwnedPluginsToCache(userData.id, userOwnedPlugins);
+		}
+
+		return sendSuccessResponse(res, 200, userOwnedPlugins, "User owned plugins fetched successfully.");
+	} catch (error) {
+		Logger.error("Error fetching owned plugins:", error);
+		return sendErrorResponse(res, 500, "Failed to fetch user owned plugins.");
 	}
 };
 
@@ -172,8 +209,10 @@ const removeUserFavoriteTheme = async (req: Request, res: Response) => {
  */
 const getUserFavoritePlugins = async (req: Request, res: Response) => {
 	const userData = req.userData;
-	const queryUserId = req.query.userId as string;
+	const queryUserId = req.query.userId as string ?? userData.id;
 	const sessionUserId = req.session.userId;
+
+	// todo: add pagination in future
 
 	// if queried user id does not match or requesting user and requesting user is not admin, deny
 	if (queryUserId !== sessionUserId && !checkIsAdminUser(userData)) {
@@ -189,7 +228,8 @@ const getUserFavoritePlugins = async (req: Request, res: Response) => {
 		}
 
 		return sendSuccessResponse(res, 200, userFavorites, "User favorite plugins fetched successfully.");
-	} catch {
+	} catch (error) {
+		Logger.error("Error fetching favorite plugins:", error);
 		return sendErrorResponse(res, 500, "Failed to fetch user favorite plugins.");
 	}
 };
@@ -207,9 +247,7 @@ const addUserFavoritePlugin = async (req: Request, res: Response) => {
 	const { pluginId } = req.body;
 
 	try {
-		addUserFavoritePluginToDb(userData.id, pluginId);
-		invalidatePluginDataCache(pluginId);
-		invalidateUserFavoritePluginsCache(userData.id);
+		await addUserFavoritePluginToDb(userData.id, pluginId);
 		sendSuccessResponse(res, 201, {}, "Added plugin to favorites successfully.");
 	} catch (error) {
 		Logger.error("Error adding favorite plugin:", error);
@@ -227,12 +265,10 @@ const addUserFavoritePlugin = async (req: Request, res: Response) => {
  */
 const removeUserFavoritePlugin = async (req: Request, res: Response) => {
 	const userData = req.userData;
-	const { pluginId } = req.params;
+	const pluginId = req.query.pluginId as string;
 
 	try {
-		removeUserFavoritePluginFromDb(userData.id, pluginId);
-		invalidatePluginDataCache(pluginId);
-		invalidateUserFavoritePluginsCache(userData.id);
+		await removeUserFavoritePluginFromDb(userData.id, pluginId);
 		sendSuccessResponse(res, 200, {}, "Removed plugin from favorites successfully.");
 	} catch (error) {
 		Logger.error("Error removing favorite plugin:", error);
@@ -260,17 +296,16 @@ const setUserAcceptAuthorAgreement = async (req: Request, res: Response) => {
 				{ where: { id: userId } }
 			);
 
-			res.status(200).json({
-				message: accept
-					? "Author agreement accepted successfully."
-					: "Author agreement status reset successfully.",
-			});
+			sendSuccessResponse(res, 200, {}, accept
+				? "Author agreement accepted successfully."
+				: "Author agreement status reset successfully."
+			);
 		} catch (error) {
-			console.error("Error updating user author agreement:", error);
-			res.status(500).json({ error: "Failed to update author agreement status." });
+			Logger.error("Error updating user author agreement:", error);
+			sendErrorResponse(res, 500, "Failed to update author agreement status.")
 		}
 	} else {
-		res.status(400).json({ error: "Invalid request. Accept must be a boolean." });
+		sendErrorResponse(res, 400,  "Invalid request. Accept must be a boolean.")
 	}
 };
 
@@ -280,7 +315,8 @@ export {
 	getUserFavoritePlugins,
 	getUserFavoriteThemes,
 	getUserProfile,
-	getUserThemes,
+	getUserOwnedThemes,
+	getUserOwnedPlugins,
 	removeUserFavoritePlugin,
 	removeUserFavoriteTheme,
 	setUserAcceptAuthorAgreement,

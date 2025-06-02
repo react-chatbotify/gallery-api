@@ -14,6 +14,7 @@ import authRoutes from './routes/authRoutes';
 import themeRoutes from './routes/themeRoutes';
 import userRoutes from './routes/userRoutes';
 import pluginRoutes from './routes/pluginRoutes';
+import projectRoutes from './routes/projectRoutes';
 import { setUpMinioBucket } from './services/minioService';
 import swaggerDocument from './swagger';
 import Logger from './logger';
@@ -34,13 +35,25 @@ setUpMinioBucket();
 
 const app = express();
 
-// handle cors
-app.use(
-	cors({
-		origin: process.env.FRONTEND_WEBSITE_URL,
-		credentials: true,
-	}),
-);
+const allowedOrigins = process.env.FRONTEND_WEBSITE_URLS?.split(',').map(origin => origin.trim()) || [];
+
+// handle cors with a dynamic origin function
+app.use(cors({
+	origin: (origin, callback) => {
+	  // allow requests with no origin (like mobile apps, curl requests)
+	  if (!origin) return callback(null, true);
+  
+	  if (allowedOrigins?.indexOf(origin) !== -1) {
+		// if the origin is found in the allowedOrigins array, allow it
+		return callback(null, true);
+	  } else {
+		// if the origin is not found in the allowedOrigins array, block it
+		Logger.info(`Allowed origins: ${allowedOrigins}`);
+		return callback(new Error(`Not allowed by CORS: ${origin}`));
+	  }
+	},
+	credentials: true,
+}));
 app.use(bodyParser.json());
 
 // needed to ensure correct protocol due to nginx proxies
@@ -62,7 +75,7 @@ app.use(
 			// if not in production, leave domain as undefined
 			domain:
 				process.env.NODE_ENV === 'production'
-					? process.env.FRONTEND_WEBSITE_DOMAIN
+					? process.env.COOKIE_DOMAIN
 					: undefined,
 			// expire after 3 months (milliseconds)
 			maxAge: 1000 * 60 * 60 * 60 * 24 * 30 * 3,
@@ -76,6 +89,7 @@ app.use(`${API_PREFIX}/auth`, authRoutes);
 app.use(`${API_PREFIX}/themes`, themeRoutes);
 app.use(`${API_PREFIX}/users`, userRoutes);
 app.use(`${API_PREFIX}/plugins`, pluginRoutes);
+app.use(`${API_PREFIX}/projects`, projectRoutes);
 
 // load the swagger docs only if not in production
 if (process.env.NODE_ENV !== 'production') {

@@ -6,6 +6,7 @@ interface PluginData {
 	favoritesCount: number;
     imageUrl: string;
     packageUrl: string;
+	isFavorite?: boolean;
 }
 
 export {
