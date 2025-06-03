@@ -3,6 +3,7 @@ import path from 'path';
 
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import csrf from 'csurf';
 import dotenv from 'dotenv';
 import express from 'express';
 import session from 'express-session';
@@ -65,7 +66,7 @@ app.use(
 		store: redisSessionStore,
 		secret: process.env.SESSION_SECRET as string,
 		resave: false,
-		saveUninitialized: true,
+		saveUninitialized: false,
 		cookie: {
 			httpOnly: true,
 			// if developing locally, set to insecure
@@ -82,6 +83,29 @@ app.use(
 		},
 	}),
 );
+
+// Initialize CSRF protection. This should be after session middleware and bodyParser.
+// We are using session storage for the CSRF secret ({ cookie: false }).
+// CSRF protection is enabled globally for all state-changing requests (POST, PUT, DELETE, PATCH).
+// GET requests are not typically checked for CSRF tokens.
+// The frontend must include the CSRF token in requests.
+// Common ways to send the token:
+//  - In a custom HTTP header (e.g., X-CSRF-Token)
+//  - In the request body (e.g., as a field named _csrf)
+// The csurf middleware automatically looks for the token in these places.
+const csrfProtection = csrf({ cookie: false });
+app.use(csrfProtection);
+
+// Generic error handler for CSRF token validation errors.
+// This must be placed after app.use(csrfProtection) and before other error handlers or routes.
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+	if (err.code === 'EBADCSRFTOKEN') {
+		Logger.error('CSRF token validation failed:', err);
+		res.status(403).json({ error: 'Invalid CSRF token. Please refresh and try again.' });
+	} else {
+		next(err);
+	}
+});
 
 // handle routes
 const API_PREFIX = `/api/${process.env.API_VERSION}`;
