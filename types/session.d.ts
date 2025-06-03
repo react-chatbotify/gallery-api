@@ -4,7 +4,8 @@ declare module 'express-session' {
 	export interface SessionData {
 		userId: string;
 		provider: string;
-		oauth_state?: string;
+		oAuthState?: string;
+		postLoginRedirectUrl: string;
 	}
 }
 

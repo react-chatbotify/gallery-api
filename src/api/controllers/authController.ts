@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 
 import { fetchTokensWithCode, getUserData, saveUserTokens } from "../services/authentication/authentication";
 import { encrypt } from "../services/cryptoService";
+import { randomBytes } from "crypto";
 import { sendErrorResponse, sendSuccessResponse } from "../utils/responseUtils";
 import Logger from "../logger";
 
@@ -16,9 +17,9 @@ import Logger from "../logger";
 const handleCallback = async (req: Request, res: Response) => {
 	// State validation must happen before anything else.
 	const receivedState = req.query.state as string;
-	const sessionState = req.session.oauth_state;
+	const sessionState = req.session.oAuthState;
 
-	delete req.session.oauth_state; // Clear state from session immediately for security (one-time use)
+	delete req.session.oAuthState; // Clear state from session immediately for security (one-time use)
 
 	if (!receivedState || !sessionState || receivedState !== sessionState) {
 		Logger.error('Invalid OAuth state.', { received: receivedState, expected: sessionState });
@@ -26,7 +27,7 @@ const handleCallback = async (req: Request, res: Response) => {
 		// Use a known safe default frontend URL.
 		const defaultFrontendErrorUrl = (process.env.FRONTEND_WEBSITE_URLS || '').split(',')[0]?.trim();
 		if (defaultFrontendErrorUrl) {
-			return res.redirect(`${defaultFrontendErrorUrl}/error?reason=invalid_oauth_state`);
+			return res.redirect(`${defaultFrontendErrorUrl}/error?reason=invalid_oAuthState`);
 		} else {
 			// Fallback if no frontend URL is configured (critical server misconfiguration)
 			Logger.error("CRITICAL: No FRONTEND_WEBSITE_URLS configured for OAuth state validation failure redirect.");
@@ -36,7 +37,8 @@ const handleCallback = async (req: Request, res: Response) => {
 
 	// The rest of the validation for redirect_url for other error types or success.
 	// This redirect_url is specific to the application's own flow, not the OAuth callback itself initially.
-	const receivedRedirectUrl = req.query.redirect_url as string | undefined;
+	const receivedRedirectUrl = req.session.postLoginRedirectUrl as string | undefined;
+	delete req.session.postLoginRedirectUrl;
 	const allowedFrontendUrls = (process.env.FRONTEND_WEBSITE_URLS || '')
                                 .split(',')
                                 .map(url => url.trim())
@@ -105,11 +107,7 @@ const handleLoginProcess = async (req: Request, res: Response) => {
 		return sendErrorResponse(res, 401, "Login failed, please try again.");
 	}
 
-	req.session.provider = provider;
-	req.session.userId = userData.id;
-	saveUserTokens(sessionId, userData.id, tokenResponse);
-
-	req.session.regenerate((err) => {
+	req.session.regenerate(async (err) => {
 		if (err) {
 			Logger.error('Error regenerating session:', err);
 			// Potentially send an error response here, though the user is technically logged in.
@@ -119,6 +117,17 @@ const handleLoginProcess = async (req: Request, res: Response) => {
 		// Store session data again after regeneration as regenerate creates a new session
 		req.session.provider = provider;
 		req.session.userId = userData.id;
+
+		try {
+			const tokenSaved = await saveUserTokens(req.sessionID, userData.id, tokenResponse);
+			if (!tokenSaved) {
+				Logger.error("Failed to save tokens for session", req.sessionID);
+				return sendErrorResponse(res, 500, "Login partially succeeded, but token storage failed.");
+			}
+		} catch (e) {
+			Logger.error("saveUserTokens threw:", e);
+			return sendErrorResponse(res, 500, "Login partially succeeded, but token storage failed.");
+		}
 
 		return sendSuccessResponse(res, 200, userData, "Login successful.");
 	});
@@ -144,8 +153,57 @@ const handleLogout = async (req: Request, res: Response) => {
 	})
 }
 
+/**
+ * Creates and returns a csrf token.
+ * 
+ * @param req request from call
+ * @param res response to call
+ * 
+ * @returns csrf token
+ */
+const handleGetCsrfToken = async (req: Request, res: Response) => {
+	return res.json({ csrfToken: req.csrfToken()});
+}
+
+/**
+ * Handles logging in via github.
+ *
+ * @param req request from call
+ * @param res response to call
+ * 
+ * @returns github authorization url
+ */
+const handleGitHubLogin = async (req: Request, res: Response) => {
+	const redirectAfter = req.query.redirect_after as string | undefined;
+	if (redirectAfter) {
+		req.session.postLoginRedirectUrl = redirectAfter;
+	}
+
+	// generate a random state
+	const state = randomBytes(16).toString('hex');
+	req.session.oAuthState = state;
+  
+	// build the redirect URI
+	const githubClientId = process.env.GITHUB_APP_CLIENT_ID;
+	const redirectUri = `${process.env.API_BASE_URL}/api/${process.env.API_VERSION}/auth/callback?provider=github`;
+	const encodedRedirectUri = encodeURIComponent(redirectUri);
+  
+	// construct github authorize url
+	const githubAuthUrl = 
+		`https://github.com/login/oauth/authorize`
+		+ `?client_id=${githubClientId}`
+		+ `&redirect_uri=${encodedRedirectUri}`
+		+ `&scope=user:email,repo`
+		+ `&state=${state}`;
+  
+	// return authorize url to frontend
+	res.json({ authorizationUrl: githubAuthUrl });
+}
+
 export {
 	handleCallback,
 	handleLoginProcess,
 	handleLogout,
+	handleGetCsrfToken,
+	handleGitHubLogin,
 };
