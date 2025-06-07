@@ -22,10 +22,10 @@ const handleCallback = (req: Request, res: Response) => {
   delete req.session.oAuthState; // Clear state from session immediately for security (one-time use)
 
   if (!receivedState || !sessionState || receivedState !== sessionState) {
-    Logger.error('Invalid OAuth state.', {
+    Logger.error('Invalid OAuth state.', {reason: {
       received: receivedState,
       expected: sessionState,
-    });
+    }});
     // For state validation failure, redirect_url from the initial call is not available.
     // Use a known safe default frontend URL.
     const defaultFrontendErrorUrl = (process.env.FRONTEND_WEBSITE_URLS || '').split(',')[0]?.trim();
