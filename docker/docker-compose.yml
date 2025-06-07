@@ -8,7 +8,7 @@ services:
       context: ..
       dockerfile: ./docker/api/Dockerfile.local
     env_file:
-      - ../config/env/.env.local
+      - ../config/env/.env
     environment:
       - PORT=3200
       - NODE_ENV=local
@@ -31,7 +31,7 @@ services:
       context: ..
       dockerfile: ./docker/api/Dockerfile.local
     env_file:
-      - ../config/env/.env.local
+      - ../config/env/.env
     environment:
       - PORT=3201
       - NODE_ENV=local
@@ -53,7 +53,7 @@ services:
       context: ..
       dockerfile: ./docker/jobs/Dockerfile.local
     env_file:
-      - ../config/env/.env.local
+      - ../config/env/.env
     depends_on:
       mysql:
         condition: service_healthy
@@ -69,7 +69,7 @@ services:
     container_name: redis-sessions
     image: redis:latest
     env_file:
-      - ../config/env/.env.local
+      - ../config/env/.env
     networks:
       - core-network
     volumes:
@@ -83,7 +83,7 @@ services:
     container_name: redis-ephemeral
     image: redis:latest
     env_file:
-      - ../config/env/.env.local
+      - ../config/env/.env
     networks:
       - core-network
     healthcheck:
@@ -94,7 +94,7 @@ services:
     container_name: mysql
     image: mysql:latest
     env_file:
-      - ../config/env/.env.local
+      - ../config/env/.env
     networks:
       - core-network
     volumes:
@@ -108,7 +108,7 @@ services:
     container_name: minio
     image: minio/minio
     env_file:
-      - ../config/env/.env.local
+      - ../config/env/.env
     command: ['server', '--console-address', ':9001', '/data']
     volumes:
       - minio-data:/data

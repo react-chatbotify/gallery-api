@@ -4,8 +4,6 @@ services:
     image: {APPLICATION_API_IMAGE}
     build:
       dockerfile: ./docker/api/Dockerfile
-    env_file:
-      - ../config/env/.env.development
     environment:
       - NODE_ENV=development
 
@@ -13,8 +11,6 @@ services:
     image: {APPLICATION_API_IMAGE}
     build:
       dockerfile: ./docker/api/Dockerfile
-    env_file:
-      - ../config/env/.env.development
     environment:
       - NODE_ENV=development
 
@@ -22,21 +18,3 @@ services:
     image: {APPLICATION_JOBS_IMAGE}
     build:
       dockerfile: ./docker/jobs/Dockerfile
-    env_file:
-      - ../config/env/.env.development
-
-  redis-sessions:
-    env_file:
-      - ../config/env/.env.development
-
-  redis-ephemeral:
-    env_file:
-      - ../config/env/.env.development
-
-  mysql:
-    env_file:
-      - ../config/env/.env.development
-
-  minio:
-    env_file:
-      - ../config/env/.env.development

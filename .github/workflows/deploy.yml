@@ -39,18 +39,20 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }} "mkdir -p /opt/rcb-deployments/${{ vars.PROJECT_NAME }}"
 
+          # copy env file
           echo "${{ secrets.APPLICATION_ENV_FILE }}" > .env
+          scp -o StrictHostKeyChecking=no .env ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/config/env/.env
 
+          # copy compose files
+          scp -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/docker/docker-compose.yml
           if [ "${{ inputs.target_tag }}" = "prod-latest" ]; then
-            scp -o StrictHostKeyChecking=no docker-compose.prod.yml ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/docker-compose.override.yml
-            scp -o StrictHostKeyChecking=no .env ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/.env.prod
+            scp -o StrictHostKeyChecking=no docker-compose.prod.yml ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/docker/docker-compose.override.yml
             scp -o StrictHostKeyChecking=no otel-config.yaml ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/otel-config.yaml
           else
-            scp -o StrictHostKeyChecking=no docker-compose.dev.yml ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/docker-compose.override.yml
-            scp -o StrictHostKeyChecking=no .env ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/.env.development
+            scp -o StrictHostKeyChecking=no docker-compose.dev.yml ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/docker/docker-compose.override.yml
           fi
 
-          scp -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/docker-compose.yml
+          # copy deploy script
           scp -o StrictHostKeyChecking=no scripts/deploy.sh ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/deploy.sh
           ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }} "\
             chmod +x /opt/rcb-deployments/${{ vars.PROJECT_NAME }}/deploy.sh"

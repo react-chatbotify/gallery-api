@@ -182,7 +182,7 @@ jobs:
         echo "Building image with tag $IMAGE"
 
         docker build \
-          --file src/jobs/Dockerfile \
+          --file docker/jobs/Dockerfile \
           --tag $IMAGE \
           src/jobs
 
