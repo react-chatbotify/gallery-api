@@ -37,7 +37,7 @@ docker compose -p "$PROJECT_NAME" down
 
 # Brings up new containers
 echo "Starting new containers..."
-docker compose -p "$PROJECT_NAME" up -d --build
+docker compose -p "$PROJECT_NAME" --env-file ./config/env/.env -f ./docker/docker-compose.yml -f ./docker/docker-compose.override.yml up -d --build
 
 # Cleans up unused docker images
 echo "Pruning unused Docker images..."
