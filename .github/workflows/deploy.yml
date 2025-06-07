@@ -37,13 +37,14 @@ jobs:
       - name: Upload deployment files to server
         # Creates project directory and uploads required files to server
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }} \
-          "mkdir -p /opt/rcb-deployments/${{ vars.PROJECT_NAME }}/config/env \
-          /opt/rcb-deployments/${{ vars.PROJECT_NAME }}/docker"
+          # create env file
+          echo "${{ secrets.APPLICATION_ENV_FILE }}" > ./config/env/.env
 
-          # copy env file
-          echo "${{ secrets.APPLICATION_ENV_FILE }}" > .env
-          scp -o StrictHostKeyChecking=no .env ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/config/env/.env
+          # copy all config files over
+          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }} \
+          "mkdir -p /opt/rcb-deployments/${{ vars.PROJECT_NAME }}/config /opt/rcb-deployments/${{ vars.PROJECT_NAME }}/docker"
+          scp -r -o StrictHostKeyChecking=no ./config \
+          ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/
 
           # copy compose files
           scp -o StrictHostKeyChecking=no docker/docker-compose.yml ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/docker/docker-compose.yml
