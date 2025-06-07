@@ -2,20 +2,20 @@
 # the application runs with stricter configurations.
 services:
   api1:
-    image: {APPLICATION_API_IMAGE}
+    image: ${APPLICATION_API_IMAGE}
     build:
       dockerfile: ./docker/api/Dockerfile
     environment:
       - NODE_ENV=production
 
   api2:
-    image: {APPLICATION_API_IMAGE}
+    image: ${APPLICATION_API_IMAGE}
     build:
       dockerfile: ./docker/api/Dockerfile
     environment:
       - NODE_ENV=production
 
   jobs:
-    image: {APPLICATION_JOBS_IMAGE}
+    image: ${APPLICATION_JOBS_IMAGE}
     build:
       dockerfile: ./docker/jobs/Dockerfile
