@@ -8,4 +8,3 @@ void runSyncThemesFromGitHub();
 // but nvm this is good enough for now
 setInterval(() => runProcessThemeQueue, 900000);
 setInterval(() => runSyncThemesFromGitHub, 86400000);
- 

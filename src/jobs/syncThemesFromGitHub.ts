@@ -70,7 +70,9 @@ const runSyncThemesFromGitHub = async () => {
     const themeJobIds: string[] = themeJobs.map((job) => job.dataValues.id);
 
     // delete themes no longer found on github, but exclude those in theme job
-    const themesToDelete: string[] = databaseThemeIds.filter((id) => !gitHubThemes.includes(id) && !themeJobIds.includes(id));
+    const themesToDelete: string[] = databaseThemeIds.filter(
+      (id) => !gitHubThemes.includes(id) && !themeJobIds.includes(id)
+    );
     if (themesToDelete.length > 0) {
       await Theme.destroy({
         where: {

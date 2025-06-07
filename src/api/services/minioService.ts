@@ -19,9 +19,7 @@ const minioClient = new Client(minioClientOptions);
 const setUpMinioBucket = async () => {
   const bucketNames = ['theme-jobs-queue', 'plugins-images'];
   try {
-    await Promise.all(
-      bucketNames.map((name) => createBucketIfNotExists(name))
-    );
+    await Promise.all(bucketNames.map((name) => createBucketIfNotExists(name)));
   } catch (err) {
     Logger.error('Failed to initialize MinIO bucket:', err);
   }
