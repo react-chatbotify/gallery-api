@@ -1,6 +1,10 @@
 # These are local overrides for developers to run locally when developing.
 services:
   api1:
+    # build for local dev
+    build:
+      context: ..
+      dockerfile: ./docker/api/Dockerfile.local
     # for hot reloading in local dev
     command: npm run start:watch-api
     # codebase mounted for local dev
@@ -9,6 +13,10 @@ services:
       - /app/node_modules
 
   api2:
+    # build for local dev
+    build:
+      context: ..
+      dockerfile: ./docker/api/Dockerfile.local
     # for hot reloading in local dev
     command: npm run start:watch-api
     # codebase mounted for local dev
@@ -17,6 +25,10 @@ services:
       - /app/node_modules
 
   jobs:
+    # build for local dev
+    build:
+      context: ..
+      dockerfile: ./docker/jobs/Dockerfile.local
     # for hot reloading in local dev
     command: npm run start:watch-jobs
     # codebase mounted for local dev

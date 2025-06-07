@@ -4,9 +4,6 @@ services:
   # first instance of the api server
   api1:
     container_name: api-1
-    build:
-      context: ..
-      dockerfile: ./docker/api/Dockerfile.local
     env_file:
       - ../config/env/.env
     environment:
@@ -27,9 +24,6 @@ services:
   # second instance of the api server
   api2:
     container_name: api-2
-    build:
-      context: ..
-      dockerfile: ./docker/api/Dockerfile.local
     env_file:
       - ../config/env/.env
     environment:
@@ -49,9 +43,6 @@ services:
   # runs scheduled jobs on the platform
   jobs:
     container_name: jobs
-    build:
-      context: ..
-      dockerfile: ./docker/jobs/Dockerfile.local
     env_file:
       - ../config/env/.env
     depends_on:
