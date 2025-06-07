@@ -43,8 +43,9 @@ jobs:
           # copy all config files over
           ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }} \
           "mkdir -p /opt/rcb-deployments/${{ vars.PROJECT_NAME }}/config /opt/rcb-deployments/${{ vars.PROJECT_NAME }}/docker"
-          scp -r -o StrictHostKeyChecking=no ./config \
-          ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/
+
+          scp -r -o StrictHostKeyChecking=no ./config/* \
+          ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/config/
 
           # copy compose files
           scp -o StrictHostKeyChecking=no docker/docker-compose.yml ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/docker/docker-compose.yml
