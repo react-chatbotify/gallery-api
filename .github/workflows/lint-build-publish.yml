@@ -92,7 +92,7 @@ jobs:
         id: changes
         uses: dorny/paths-filter@v2
         with:
-          filters:
+          filters: |
             api:
               - 'src/api/**'
             jobs:
