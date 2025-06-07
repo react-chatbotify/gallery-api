@@ -89,14 +89,14 @@ jobs:
           fi
 
       - name: Detect changed paths
-      id: changes
-      uses: dorny/paths-filter@v2
-      with:
-        filters:
-          api:
-            - 'src/api/**'
-          jobs:
-            - 'src/jobs/**'
+        id: changes
+        uses: dorny/paths-filter@v2
+        with:
+          filters:
+            api:
+              - 'src/api/**'
+            jobs:
+              - 'src/jobs/**'
 
       - name: Backup existing API image
         # Pulls the current image using the target tag and backup it with a previous tag if it exists.
@@ -130,63 +130,63 @@ jobs:
             echo "No Jobs image to back up."
           fi
 
-    - name: Cleanup Old API Image Digests
-      # Cleans up old api images
-      if: steps.changes.outputs.api == 'true'
-      uses: actions/delete-package-versions@v5
-      with:
-        package-name: ${{ github.event.repository.name }}-api
-        package-type: container
-        owner: ${{ github.repository_owner }}
-        min-versions-to-keep: 2 # Keeps the 2 most recent versions (latest and previous)
-        token: ${{ secrets.MACHINE_PAT }}
+      - name: Cleanup Old API Image Digests
+        # Cleans up old api images
+        if: steps.changes.outputs.api == 'true'
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: ${{ github.event.repository.name }}-api
+          package-type: container
+          owner: ${{ github.repository_owner }}
+          min-versions-to-keep: 2 # Keeps the 2 most recent versions (latest and previous)
+          token: ${{ secrets.MACHINE_PAT }}
 
-    - name: Cleanup Old Jobs Image Digests
-      # Cleans up old jobs images
-      if: steps.changes.outputs.jobs == 'true'
-      uses: actions/delete-package-versions@v5
-      with:
-        package-name: ${{ github.event.repository.name }}-jobs
-        package-type: container
-        owner: ${{ github.repository_owner }}
-        min-versions-to-keep: 2 # Keeps the 2 most recent versions (latest and previous)
-        token: ${{ secrets.MACHINE_PAT }}
+      - name: Cleanup Old Jobs Image Digests
+        # Cleans up old jobs images
+        if: steps.changes.outputs.jobs == 'true'
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: ${{ github.event.repository.name }}-jobs
+          package-type: container
+          owner: ${{ github.repository_owner }}
+          min-versions-to-keep: 2 # Keeps the 2 most recent versions (latest and previous)
+          token: ${{ secrets.MACHINE_PAT }}
 
-    - name: Build & push API image
-      # Builds a new Docker image with the target tag and pushes it to GHCR.
-      if: steps.changes.outputs.api == 'true'
-      run: |
-        OWNER=${{ github.repository_owner }}
-        BASE=${{ github.event.repository.name }}-api
-        TAG=${{ steps.vars.outputs.TARGET_TAG }}
-        IMAGE=ghcr.io/$OWNER/$BASE:$TAG
+      - name: Build & push API image
+        # Builds a new Docker image with the target tag and pushes it to GHCR.
+        if: steps.changes.outputs.api == 'true'
+        run: |
+          OWNER=${{ github.repository_owner }}
+          BASE=${{ github.event.repository.name }}-api
+          TAG=${{ steps.vars.outputs.TARGET_TAG }}
+          IMAGE=ghcr.io/$OWNER/$BASE:$TAG
 
-        echo "Building image with tag $IMAGE"
+          echo "Building image with tag $IMAGE"
 
-        docker build \
-          --file docker/api/Dockerfile \
-          --tag $IMAGE \
-          src/api
+          docker build \
+            --file docker/api/Dockerfile \
+            --tag $IMAGE \
+            src/api
 
-        docker push $IMAGE
+          docker push $IMAGE
 
-    - name: Build & push Jobs image
-      # Builds a new Docker image with the target tag and pushes it to GHCR.
-      if: steps.changes.outputs.jobs == 'true'
-      run: |
-        OWNER=${{ github.repository_owner }}
-        BASE=${{ github.event.repository.name }}-jobs
-        TAG=${{ steps.vars.outputs.TARGET_TAG }}
-        IMAGE=ghcr.io/$OWNER/$BASE:$TAG
+      - name: Build & push Jobs image
+        # Builds a new Docker image with the target tag and pushes it to GHCR.
+        if: steps.changes.outputs.jobs == 'true'
+        run: |
+          OWNER=${{ github.repository_owner }}
+          BASE=${{ github.event.repository.name }}-jobs
+          TAG=${{ steps.vars.outputs.TARGET_TAG }}
+          IMAGE=ghcr.io/$OWNER/$BASE:$TAG
 
-        echo "Building image with tag $IMAGE"
+          echo "Building image with tag $IMAGE"
 
-        docker build \
-          --file docker/jobs/Dockerfile \
-          --tag $IMAGE \
-          src/jobs
+          docker build \
+            --file docker/jobs/Dockerfile \
+            --tag $IMAGE \
+            src/jobs
 
-        docker push $IMAGE
+          docker push $IMAGE
 
   trigger-deploy:
     needs: build
