@@ -44,12 +44,10 @@ const handleCallback = async (req: Request, res: Response) => {
       Logger.error(
         'CRITICAL: No FRONTEND_WEBSITE_URLS configured for OAuth state validation failure redirect.',
       );
-      return res
-        .status(400)
-        .json({
-          error:
-            'OAuth state validation failed and no default frontend URL configured.',
-        });
+      return res.status(400).json({
+        error:
+          'OAuth state validation failed and no default frontend URL configured.',
+      });
     }
   }
 
@@ -80,11 +78,9 @@ const handleCallback = async (req: Request, res: Response) => {
       Logger.error(
         'CRITICAL: No FRONTEND_WEBSITE_URLS configured for redirection.',
       );
-      return res
-        .status(400)
-        .json({
-          error: 'Invalid redirect URL specified or application misconfigured.',
-        });
+      return res.status(400).json({
+        error: 'Invalid redirect URL specified or application misconfigured.',
+      });
     }
   }
 

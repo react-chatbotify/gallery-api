@@ -1,0 +1,23 @@
+# These are local overrides for developers to run locally when developing.
+services:
+  api1:
+    # for hot reloading in local dev
+    command: npm run dev:watch-api
+    # codebase mounted for local dev
+    volumes:
+      - ..:/app
+      - /app/node_modules
+
+  api2:
+    # for hot reloading in local dev
+    command: npm run dev:watch-api
+    # codebase mounted for local dev
+    volumes:
+      - ..:/app
+      - /app/node_modules
+
+  jobs:
+    command: npm run dev:watch-jobs
+    volumes:
+      - ..:/app
+      - /app/node_modules

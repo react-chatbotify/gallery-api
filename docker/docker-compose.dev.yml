@@ -1,167 +1,39 @@
-# The dev environment is intended for developers to test the application locally. It is configured
-# to support connections from a local frontend running on port 3000. The frontend has to be on port
-# 3000 to work because of CORS setup unless additional steps are taken to modify configurations.
+# The development environment runs the live application on the development server.
 services:
-  # first instance of the api server
   api1:
-    container_name: api-dev-1
     build:
-      context: ..
-      dockerfile: ./docker/api/Dockerfile.dev
+      dockerfile: ./docker/api/Dockerfile
     env_file:
       - ../config/env/.env.development
     environment:
-      - PORT=3200
       - NODE_ENV=development
-      - IS_PRIMARY=true
-    depends_on:
-      redis-sessions:
-        condition: service_healthy
-      redis-ephemeral:
-        condition: service_healthy
-      mysql:
-        condition: service_healthy
-    networks:
-      - nginx-network-dev
-      - core-network-dev
-    # for hot reloading in dev
-    command: npm run dev:watch-api
-    # codebase mounted for dev
-    volumes:
-      - ..:/app
-      - /app/node_modules
 
-  # second instance of the api server
   api2:
-    container_name: api-dev-2
     build:
-      context: ..
-      dockerfile: ./docker/api/Dockerfile.dev
+      dockerfile: ./docker/api/Dockerfile
     env_file:
       - ../config/env/.env.development
     environment:
-      - PORT=3201
       - NODE_ENV=development
-    depends_on:
-      redis-sessions:
-        condition: service_healthy
-      redis-ephemeral:
-        condition: service_healthy
-      mysql:
-        condition: service_healthy
-    networks:
-      - nginx-network-dev
-      - core-network-dev
-    # for hot reloading in dev
-    command: npm run dev:watch-api
-    # codebase mounted for dev
-    volumes:
-      - ..:/app
-      - /app/node_modules
 
-  # runs scheduled jobs on the platform
   jobs:
-    container_name: jobs-dev
     build:
-      context: ..
-      dockerfile: ./docker/jobs/Dockerfile.dev
+      dockerfile: ./docker/jobs/Dockerfile
     env_file:
       - ../config/env/.env.development
-    depends_on:
-      mysql:
-        condition: service_healthy
-      api1:
-        condition: service_started
-      api2:
-        condition: service_started
-    networks:
-      - core-network-dev
-    command: npm run dev:watch-jobs
-    volumes:
-      - ..:/app
-      - /app/node_modules
 
-  # used in user sessions and secure storage of user data/tokens
   redis-sessions:
-    container_name: redis-sessions-dev
-    image: redis:latest
     env_file:
       - ../config/env/.env.development
-    networks:
-      - core-network-dev
-    volumes:
-      - redis-sessions-data-dev:/data
-      - ./config/redis/redis.dev.conf:/usr/local/etc/redis/redis.conf:ro
-    command: ['redis-server', '/usr/local/etc/redis/redis.conf']
-    healthcheck:
-      test: 'exit 0'
 
   redis-ephemeral:
-    container_name: redis-ephemeral-dev
-    image: redis:latest
     env_file:
       - ../config/env/.env.development
-    networks:
-      - core-network-dev
-    healthcheck:
-      test: 'exit 0'
 
-  # used to persist user/themes data
   mysql:
-    container_name: mysql-dev
-    image: mysql:latest
     env_file:
       - ../config/env/.env.development
-    networks:
-      - core-network-dev
-    volumes:
-      - mysql-data-dev:/var/lib/mysql
-    healthcheck:
-      test: 'exit 0'
 
-  # used for temporarily holding uploaded theme files
   minio:
-    container_name: minio-dev
-    image: minio/minio
     env_file:
       - ../config/env/.env.development
-
-    volumes:
-      - minio-data-dev:/data
-    networks:
-      - core-network-dev
-    ports:
-      - '9001:9001'
-      - '9000:9000'
-    command: ['server', '--console-address', ':9001', '/data']
-    healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
-      interval: 30s
-      timeout: 20s
-      retries: 3
-
-  # used to load balance between api server instances
-  nginx:
-    image: nginx:latest
-    container_name: nginx-dev
-    ports:
-      - '3102:3100'
-    volumes:
-      - ../config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - api1
-      - api2
-    networks:
-      - nginx-network-dev
-
-# todo: redis seems to create ghost volumes on every restart even with data specified, why?
-volumes:
-  mysql-data-dev:
-  minio-data-dev:
-  redis-sessions-data-dev:
-
-networks:
-  nginx-network-dev:
-    driver: bridge
-  core-network-dev:
-    driver: bridge

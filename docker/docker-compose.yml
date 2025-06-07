@@ -3,15 +3,15 @@
 services:
   # first instance of the api server
   api1:
-    container_name: api-prod-1
+    container_name: api-1
     build:
       context: ..
-      dockerfile: ./docker/api/Dockerfile
+      dockerfile: ./docker/api/Dockerfile.local
     env_file:
-      - ../config/env/.env.production
+      - ../config/env/.env.local
     environment:
       - PORT=3200
-      - NODE_ENV=production
+      - NODE_ENV=local
       - IS_PRIMARY=true
     depends_on:
       redis-sessions:
@@ -21,20 +21,20 @@ services:
       mysql:
         condition: service_healthy
     networks:
-      - nginx-network-prod
-      - core-network-prod
+      - nginx-network
+      - core-network
 
   # second instance of the api server
   api2:
-    container_name: api-prod-2
+    container_name: api-2
     build:
       context: ..
-      dockerfile: ./docker/api/Dockerfile
+      dockerfile: ./docker/api/Dockerfile.local
     env_file:
-      - ../config/env/.env.production
+      - ../config/env/.env.local
     environment:
       - PORT=3201
-      - NODE_ENV=production
+      - NODE_ENV=local
     depends_on:
       redis-sessions:
         condition: service_healthy
@@ -43,17 +43,17 @@ services:
       mysql:
         condition: service_healthy
     networks:
-      - nginx-network-prod
-      - core-network-prod
+      - nginx-network
+      - core-network
 
   # runs scheduled jobs on the platform
   jobs:
-    container_name: jobs-prod
+    container_name: jobs
     build:
       context: ..
-      dockerfile: ./docker/jobs/Dockerfile
+      dockerfile: ./docker/jobs/Dockerfile.local
     env_file:
-      - ../config/env/.env.production
+      - ../config/env/.env.local
     depends_on:
       mysql:
         condition: service_healthy
@@ -62,66 +62,63 @@ services:
       api2:
         condition: service_started
     networks:
-      - core-network-prod
+      - core-network
 
   # used in user sessions and secure storage of user data/tokens
   redis-sessions:
-    container_name: redis-sessions-prod
+    container_name: redis-sessions
     image: redis:latest
     env_file:
-      - ../config/env/.env.production
+      - ../config/env/.env.local
     networks:
-      - core-network-prod
+      - core-network
     volumes:
-      - redis-sessions-data-prod:/data
+      - redis-sessions-data:/data
       - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
     command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
     healthcheck:
       test: "exit 0"
 
   redis-ephemeral:
-    container_name: redis-ephemeral-prod
+    container_name: redis-ephemeral
     image: redis:latest
     env_file:
-      - ../config/env/.env.production
+      - ../config/env/.env.local
     networks:
-      - core-network-prod
+      - core-network
     healthcheck:
       test: "exit 0"
 
   # used to persist user/themes data
   mysql:
-    container_name: mysql-prod
+    container_name: mysql
     image: mysql:latest
     env_file:
-      - ../config/env/.env.production
+      - ../config/env/.env.local
     networks:
-      - core-network-prod
+      - core-network
     volumes:
-      - mysql-data-prod:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
     # todo: is this check good enough?
     healthcheck:
       test: "exit 0"
 
   # used for temporarily holding uploaded theme files
   minio:
-    container_name: minio-prod
+    container_name: minio
     image: minio/minio
     env_file:
-      - ../config/env/.env.production
-    command: server /data
+      - ../config/env/.env.local
+    command: ['server', '--console-address', ':9001', '/data']
     volumes:
-      - minio-data-prod:/data
+      - minio-data:/data
     networks:
-      - core-network-prod
+      - core-network
+    ports:
+      - '9001:9001'
+      - '9000:9000'
     healthcheck:
-      test:
-        [
-          "CMD",
-          "curl",
-          "-f",
-          "http://localhost:9000/minio/health/live"
-        ]
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
       interval: 30s
       timeout: 20s
       retries: 3
@@ -129,7 +126,7 @@ services:
   # used to load balance between api server instances
   nginx:
     image: nginx:latest
-    container_name: nginx-prod
+    container_name: nginx
     ports:
       - "3100:3100"
     volumes:
@@ -138,17 +135,17 @@ services:
       - api1
       - api2
     networks:
-      - nginx-network-prod
+      - nginx-network
 
 # todo: redis seems to create ghost volumes on every restart even with data specified, why?
 volumes:
-  mysql-data-prod:
-  minio-data-prod:
-  redis-sessions-data-prod:
+  mysql-data:
+  minio-data:
+  redis-sessions-data:
 
 
 networks:
-  nginx-network-prod:
+  nginx-network:
     driver: bridge
-  core-network-prod:
+  core-network:
     driver: bridge

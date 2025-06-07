@@ -47,41 +47,146 @@ jobs:
         run: npm run lint
 
   build:
-    needs: test
-    name: Run Build Process
+    needs: lint
+    name: Build Docker Images
     runs-on: ubuntu-latest
     environment: ${{ inputs.target_env }}
+    outputs:
+      # Exposes the TARGET_TAG output from the 'vars' step.
+      target_tag: ${{ steps.vars.outputs.TARGET_TAG }}
 
     steps:
       - name: Checkout code
         # Checks out the repository code.
         uses: actions/checkout@v4
 
-      - name: Load env file
-        # Loads environment variables from file
-        run: echo "${{ secrets.APPLICATION_ENV_FILE }}" > .env
+       - name: Set up Docker Buildx
+        # Prepares Docker Buildx for building multi-platform images.
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        # Logs into GitHub Container Registry using provided credentials.
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.MACHINE_USER }}
+          password: ${{ secrets.MACHINE_PAT }}
       
-      - name: Setup Node.js ${{ inputs.node-version }}
-        # Sets up NodeJS environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ inputs.node-version }}
+      - name: Determine deployment variables
+        id: vars
+        # Sets Docker image tags for production or development based on branch name.
+        run: |
+          BRANCH_NAME=${GITHUB_REF##*/}
+          if [ "$BRANCH_NAME" = "main" ]; then
+            echo "TARGET_TAG=prod-latest" >> $GITHUB_OUTPUT
+            echo "BACKUP_TAG=prod-previous" >> $GITHUB_OUTPUT
+          elif [ "$BRANCH_NAME" = "development" ]; then
+            echo "TARGET_TAG=dev-latest" >> $GITHUB_OUTPUT
+            echo "BACKUP_TAG=dev-previous" >> $GITHUB_OUTPUT
+          else
+            echo "Unsupported branch: $BRANCH_NAME"
+            exit 1
+          fi
 
-      - name: Install Dependencies
-        # Install dependencies
-        run: npm ci
+      - name: Detect changed paths
+      id: changes
+      uses: dorny/paths-filter@v2
+      with:
+        filters:
+          api:
+            - 'src/api/**'
+          jobs:
+            - 'src/jobs/**'
 
-      - name: Build Project
-        # Builds project
-        run: npm run build --if-present
+      - name: Backup existing API image
+        # Pulls the current image using the target tag and backup it with a previous tag if it exists.
+        if: steps.changes.outputs.api == 'true'
+        run: |
+          OWNER="${{ github.repository_owner }}"
+          BASE="${{ github.event.repository.name }}-api"
+          IMAGE="ghcr.io/$OWNER/$BASE:${{ steps.vars.outputs.TARGET_TAG }}"
+          BACKUP="ghcr.io/$OWNER/$BASE:${{ steps.vars.outputs.BACKUP_TAG }}"
+          echo "Backing up API image if it exists: $IMAGE → $BACKUP"
+          if docker pull "$IMAGE"; then
+            docker tag "$IMAGE" "$BACKUP"
+            docker push "$BACKUP"
+          else
+            echo "No API image to back up."
+          fi
 
-      - name: Upload build artifact (build)
-        # Uploads build output
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ vars.PROJECT_NAME }}
-          path: build
-          retention-days: 1 
+      - name: Backup existing Jobs image
+        # Pulls the current image using the target tag and backup it with a previous tag if it exists.
+        if: steps.changes.outputs.jobs == 'true'
+        run: |
+          OWNER="${{ github.repository_owner }}"
+          BASE="${{ github.event.repository.name }}-jobs"
+          IMAGE="ghcr.io/$OWNER/$BASE:${{ steps.vars.outputs.TARGET_TAG }}"
+          BACKUP="ghcr.io/$OWNER/$BASE:${{ steps.vars.outputs.BACKUP_TAG }}"
+          echo "Backing up Jobs image if it exists: $IMAGE → $BACKUP"
+          if docker pull "$IMAGE"; then
+            docker tag "$IMAGE" "$BACKUP"
+            docker push "$BACKUP"
+          else
+            echo "No Jobs image to back up."
+          fi
+
+    - name: Cleanup Old API Image Digests
+      # Cleans up old api images
+      if: steps.changes.outputs.api == 'true'
+      uses: actions/delete-package-versions@v5
+      with:
+        package-name: ${{ github.event.repository.name }}-api
+        package-type: container
+        owner: ${{ github.repository_owner }}
+        min-versions-to-keep: 2 # Keeps the 2 most recent versions (latest and previous)
+        token: ${{ secrets.MACHINE_PAT }}
+
+    - name: Cleanup Old Jobs Image Digests
+      # Cleans up old jobs images
+      if: steps.changes.outputs.jobs == 'true'
+      uses: actions/delete-package-versions@v5
+      with:
+        package-name: ${{ github.event.repository.name }}-jobs
+        package-type: container
+        owner: ${{ github.repository_owner }}
+        min-versions-to-keep: 2 # Keeps the 2 most recent versions (latest and previous)
+        token: ${{ secrets.MACHINE_PAT }}
+
+    - name: Build & push API image
+      # Builds a new Docker image with the target tag and pushes it to GHCR.
+      if: steps.changes.outputs.api == 'true'
+      run: |
+        OWNER=${{ github.repository_owner }}
+        BASE=${{ github.event.repository.name }}-api
+        TAG=${{ steps.vars.outputs.TARGET_TAG }}
+        IMAGE=ghcr.io/$OWNER/$BASE:$TAG
+
+        echo "Building image with tag $IMAGE"
+
+        docker build \
+          --file docker/api/Dockerfile \
+          --tag $IMAGE \
+          src/api
+
+        docker push $IMAGE
+
+    - name: Build & push Jobs image
+      # Builds a new Docker image with the target tag and pushes it to GHCR.
+      if: steps.changes.outputs.jobs == 'true'
+      run: |
+        OWNER=${{ github.repository_owner }}
+        BASE=${{ github.event.repository.name }}-jobs
+        TAG=${{ steps.vars.outputs.TARGET_TAG }}
+        IMAGE=ghcr.io/$OWNER/$BASE:$TAG
+
+        echo "Building image with tag $IMAGE"
+
+        docker build \
+          --file src/jobs/Dockerfile \
+          --tag $IMAGE \
+          src/jobs
+
+        docker push $IMAGE
 
   trigger-deploy:
     needs: build

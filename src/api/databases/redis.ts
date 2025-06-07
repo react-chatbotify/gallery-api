@@ -12,10 +12,18 @@ const redisSessionClient = createClient({
   },
 });
 redisSessionClient.connect().catch(Logger.error);
-redisSessionClient.on('error', err => Logger.error('Redis Session Client Error:', err));
-redisSessionClient.on('connect', () => Logger.info('Redis Session Client: Connected'));
-redisSessionClient.on('reconnecting', () => Logger.info('Redis Session Client: Reconnecting'));
-redisSessionClient.on('end', () => Logger.warn('Redis Session Client: Connection Ended'));
+redisSessionClient.on('error', (err) =>
+  Logger.error('Redis Session Client Error:', err),
+);
+redisSessionClient.on('connect', () =>
+  Logger.info('Redis Session Client: Connected'),
+);
+redisSessionClient.on('reconnecting', () =>
+  Logger.info('Redis Session Client: Reconnecting'),
+);
+redisSessionClient.on('end', () =>
+  Logger.warn('Redis Session Client: Connection Ended'),
+);
 
 const redisSessionStore = new RedisStore({
   client: redisSessionClient,
@@ -32,9 +40,17 @@ const redisEphemeralClient = createClient({
   },
 });
 redisEphemeralClient.connect().catch(Logger.error);
-redisEphemeralClient.on('error', err => Logger.error('Redis Ephemeral Client Error:', err));
-redisEphemeralClient.on('connect', () => Logger.info('Redis Ephemeral Client: Connected'));
-redisEphemeralClient.on('reconnecting', () => Logger.info('Redis Ephemeral Client: Reconnecting'));
-redisEphemeralClient.on('end', () => Logger.warn('Redis Ephemeral Client: Connection Ended'));
+redisEphemeralClient.on('error', (err) =>
+  Logger.error('Redis Ephemeral Client Error:', err),
+);
+redisEphemeralClient.on('connect', () =>
+  Logger.info('Redis Ephemeral Client: Connected'),
+);
+redisEphemeralClient.on('reconnecting', () =>
+  Logger.info('Redis Ephemeral Client: Reconnecting'),
+);
+redisEphemeralClient.on('end', () =>
+  Logger.warn('Redis Ephemeral Client: Connection Ended'),
+);
 
 export { redisEphemeralClient, redisSessionStore };

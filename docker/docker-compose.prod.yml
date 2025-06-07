@@ -1,0 +1,40 @@
+# The production environment runs the live application on the production server. Debugging outputs are minimized and
+# the application runs with stricter configurations.
+services:
+  api1:
+    build:
+      dockerfile: ./docker/api/Dockerfile
+    env_file:
+      - ../config/env/.env.production
+    environment:
+      - NODE_ENV=production
+
+  api2:
+    build:
+      dockerfile: ./docker/api/Dockerfile
+    env_file:
+      - ../config/env/.env.production
+    environment:
+      - NODE_ENV=production
+
+  jobs:
+    build:
+      dockerfile: ./docker/jobs/Dockerfile
+    env_file:
+      - ../config/env/.env.production
+
+  redis-sessions:
+    env_file:
+      - ../config/env/.env.production
+
+  redis-ephemeral:
+    env_file:
+      - ../config/env/.env.production
+
+  mysql:
+    env_file:
+      - ../config/env/.env.production
+
+  minio:
+    env_file:
+      - ../config/env/.env.production

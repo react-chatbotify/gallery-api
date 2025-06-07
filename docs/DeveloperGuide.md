@@ -59,7 +59,7 @@ To setup the project locally, follow the steps below:
     ```
     npm run dev
     ```
-4) The API server will be available on **http://localhost:3102**, and you may quickly verify that it is running by visiting the endpoint for fetching themes: http://localhost:3102/api/v1/themes?pageSize=30&pageNum=1
+4) The API server will be available on **http://localhost:3100**, and you may quickly verify that it is running by visiting the endpoint for fetching themes: http://localhost:3100/api/v1/themes?pageSize=30&pageNum=1
 
 **Note:** For internal developers, you will be provided with a *.env.development* file which contains the variables for for the development environment. Notably, you'll be able to interact with the **GitHub Application** meant for development. The development environment is also setup to only **strictly** accept requests from a frontend served at **localhost:3000**. Thus, if you're keen to setup the frontend project, bear in mind to check the port number before calling the backend. For public contributors, you will have to populate the values in *.env.template* from scratch. If you require assistance with that however, feel free to **reach out**!
 
