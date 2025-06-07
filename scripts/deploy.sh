@@ -28,8 +28,8 @@ cd "/opt/rcb-deployments/$PROJECT_NAME"
 
 # Replaces placeholder string '${APPLICATION_API_IMAGE}' and '${APPLICATION_JOBS_IMAGE}' with the actual image within compose file.
 echo "Injecting image to override docker compose file..."
-sed -i "s|\${APPLICATION_API_IMAGE}|$APPLICATION_API_IMAGE|g" ./docker-compose.override.yml
-sed -i "s|\${APPLICATION_JOBS_IMAGE}|$APPLICATION_JOBS_IMAGE|g" ./docker-compose.override.yml
+sed -i "s|\${APPLICATION_API_IMAGE}|$APPLICATION_API_IMAGE|g" ./docker/docker-compose.override.yml
+sed -i "s|\${APPLICATION_JOBS_IMAGE}|$APPLICATION_JOBS_IMAGE|g" ./docker/docker-compose.override.yml
 
 # Tears down existing containers
 echo "Stopping existing containers..."
