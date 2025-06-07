@@ -35,6 +35,10 @@ sed -i "s|\${APPLICATION_JOBS_IMAGE}|$APPLICATION_JOBS_IMAGE|g" ./docker/docker-
 echo "Stopping existing containers..."
 docker compose -p "$PROJECT_NAME" down
 
+echo "→ PWD is: $(pwd)"
+echo "→ Directory listing:"
+ls -R .
+
 # Brings up new containers
 echo "Starting new containers..."
 docker compose -p "$PROJECT_NAME" --env-file ./config/env/.env -f ./docker/docker-compose.yml -f ./docker/docker-compose.override.yml up -d --build
