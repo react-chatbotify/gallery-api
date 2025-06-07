@@ -196,3 +196,4 @@ jobs:
     secrets: inherit
     with:
       target_env: ${{ inputs.target_env }}
+      target_tag: ${{ needs.build.outputs.target_tag }}
