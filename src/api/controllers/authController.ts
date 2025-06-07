@@ -165,18 +165,6 @@ const handleLogout = (req: Request, res: Response) => {
 };
 
 /**
- * Creates and returns a csrf token.
- *
- * @param req request from call
- * @param res response to call
- *
- * @returns csrf token
- */
-const handleGetCsrfToken = (req: Request, res: Response) => {
-  return sendSuccessResponse(res, 200, { csrfToken: req.session.csrfToken }, 'CSRF Token Retrieved.');
-};
-
-/**
  * Handles logging in via github.
  *
  * @param req request from call
@@ -208,7 +196,7 @@ const handleGitHubLogin = (req: Request, res: Response) => {
     `&state=${state}`;
 
   // return authorize url to frontend
-  res.json({ authorizationUrl: githubAuthUrl });
+  sendSuccessResponse(res, 200, { authorizationUrl: githubAuthUrl }, 'Authorization URL Created.');
 };
 
-export { handleCallback, handleLoginProcess, handleLogout, handleGetCsrfToken, handleGitHubLogin };
+export { handleCallback, handleLoginProcess, handleLogout, handleGitHubLogin };

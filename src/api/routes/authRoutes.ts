@@ -2,7 +2,6 @@ import express from 'express';
 
 import {
   handleCallback,
-  handleGetCsrfToken,
   handleGitHubLogin,
   handleLoginProcess,
   handleLogout,
@@ -18,9 +17,6 @@ router.get('/login/process', handleLoginProcess);
 
 // handles logout
 router.get('/logout', handleLogout);
-
-// provides csrf token to frontend
-router.get('/csrf-token', handleGetCsrfToken);
 
 // initiates github oauth login flow
 router.get('/github/login', handleGitHubLogin);
