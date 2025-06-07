@@ -1,5 +1,5 @@
 # For development purposes, the dev docker file simply mounts the codebase with hot-reloading
-FROM node:20-alpine
+FROM node:24-slim
 
 # Maintainer information
 LABEL org.opencontainers.image.authors="Tan Jin (tjtanjin)"

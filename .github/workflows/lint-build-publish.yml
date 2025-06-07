@@ -168,7 +168,7 @@ jobs:
           docker build \
             --file docker/api/Dockerfile \
             --tag $IMAGE \
-            src/api
+            .
 
           docker push $IMAGE
 
@@ -186,7 +186,7 @@ jobs:
           docker build \
             --file docker/jobs/Dockerfile \
             --tag $IMAGE \
-            src/jobs
+            .
 
           docker push $IMAGE
 
