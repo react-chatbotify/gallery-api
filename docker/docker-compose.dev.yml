@@ -1,6 +1,7 @@
 # The development environment runs the live application on the development server.
 services:
   api1:
+    image: {APPLICATION_API_IMAGE}
     build:
       dockerfile: ./docker/api/Dockerfile
     env_file:
@@ -9,6 +10,7 @@ services:
       - NODE_ENV=development
 
   api2:
+    image: {APPLICATION_API_IMAGE}
     build:
       dockerfile: ./docker/api/Dockerfile
     env_file:
@@ -17,6 +19,7 @@ services:
       - NODE_ENV=development
 
   jobs:
+    image: {APPLICATION_JOBS_IMAGE}
     build:
       dockerfile: ./docker/jobs/Dockerfile
     env_file:

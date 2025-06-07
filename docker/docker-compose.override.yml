@@ -17,7 +17,9 @@ services:
       - /app/node_modules
 
   jobs:
+    # for hot reloading in local dev
     command: npm run dev:watch-jobs
+    # codebase mounted for local dev
     volumes:
       - ..:/app
       - /app/node_modules

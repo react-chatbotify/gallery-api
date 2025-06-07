@@ -1,9 +1,15 @@
 #!/bin/bash
 set -e
 
-# Checks if application image is specified
-if [ -z "$APPLICATION_IMAGE" ]; then
-  echo "[ERROR] APPLICATION_IMAGE variable not set."
+# Checks if APPLICATION_API_IMAGE is specified
+if [ -z "$APPLICATION_API_IMAGE" ]; then
+  echo "[ERROR] API_IMAGE variable not set."
+  exit 1
+fi
+
+# Checks if APPLICATION_JOBS_IMAGE is specified
+if [ -z "$APPLICATION_JOBS_IMAGE" ]; then
+  echo "[ERROR] JOBS_IMAGE variable not set."
   exit 1
 fi
 
@@ -11,16 +17,19 @@ fi
 echo "Logging into GitHub Container Registry..."
 echo "${GHCR_PAT}" | docker login ghcr.io -u "${GHCR_USER}" --password-stdin
 
-# Pulls application image
-echo "Pulling image: $APPLICATION_IMAGE"
-docker pull "$APPLICATION_IMAGE"
+# Pulls application images
+echo "Pulling image: $APPLICATION_API_IMAGE"
+docker pull "$APPLICATION_API_IMAGE"
+echo "Pulling image: $APPLICATION_JOBS_IMAGE"
+docker pull "$APPLICATION_JOBS_IMAGE"
 
 # Changes directory to where the deployment files are
 cd "/opt/rcb-deployments/$PROJECT_NAME"
 
-# Replaces placeholder string '${APPLICATION_IMAGE}' with the actual image within compose file.
+# Replaces placeholder string '${APPLICATION_API_IMAGE}' and '${APPLICATION_JOBS_IMAGE}' with the actual image within compose file.
 echo "Injecting image to override docker compose file..."
-sed -i "s|\${APPLICATION_IMAGE}|$APPLICATION_IMAGE|g" ./docker-compose.override.yml
+sed -i "s|\${APPLICATION_API_IMAGE}|$APPLICATION_API_IMAGE|g" ./docker-compose.override.yml
+sed -i "s|\${APPLICATION_JOBS_IMAGE}|$APPLICATION_JOBS_IMAGE|g" ./docker-compose.override.yml
 
 # Tears down existing containers
 echo "Stopping existing containers..."

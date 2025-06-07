@@ -59,20 +59,21 @@ jobs:
         # Deploys to VPS.
         run: |
           OWNER="${{ vars.GHCR_OWNER }}"
-          REPO="${{ github.event.repository.name }}"
-          IMAGE="ghcr.io/$OWNER/$REPO:${{ inputs.target_tag }}"
-          echo "Deploying $IMAGE to VPS..."
+          APPLICATION_API_IMAGE="ghcr.io/$OWNER/{{ github.event.repository.name }}-api:${{ inputs.target_tag }}"
+          APPLICATION_JOBS_IMAGE="ghcr.io/$OWNER/{{ github.event.repository.name }}-jobs:${{ inputs.target_tag }}"
+          echo "Deploying to VPS..."
           ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }} "\
 
             # exports general variables
             export PROJECT_NAME='${{ vars.PROJECT_NAME }}' && \
             export GHCR_USER='${{ secrets.MACHINE_USER }}' && \
             export GHCR_PAT='${{ secrets.MACHINE_PAT }}' && \
-            export APPLICATION_IMAGE='$IMAGE' && \
+            export APPLICATION_API_IMAGE='$APPLICATION_API_IMAGE' && \
+            export APPLICATION_JOBS_IMAGE='$APPLICATION_JOBS_IMAGE' && \
 
             # applies only to production for logging
             export HONEYCOMB_API_KEY='${{ secrets.HONEYCOMB_API_KEY }}' && \
             export HONEYCOMB_DATASET='${{ secrets.HONEYCOMB_DATASET }}' && \
 
             # runs deploy script
-            /opt/rcb-deployments/${{ vars.PROJECT_NAME }}/deploy.sh $IMAGE"
+            /opt/rcb-deployments/${{ vars.PROJECT_NAME }}/deploy.sh"
