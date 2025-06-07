@@ -37,7 +37,9 @@ jobs:
       - name: Upload deployment files to server
         # Creates project directory and uploads required files to server
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }} "mkdir -p /opt/rcb-deployments/${{ vars.PROJECT_NAME }}"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }} \
+          "mkdir -p /opt/rcb-deployments/${{ vars.PROJECT_NAME }}/config/env \
+          /opt/rcb-deployments/${{ vars.PROJECT_NAME }}/docker"
 
           # copy env file
           echo "${{ secrets.APPLICATION_ENV_FILE }}" > .env
