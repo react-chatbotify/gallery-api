@@ -43,9 +43,9 @@ router.get('/', async (req, res) => {
   const userData = await getUserData(req.sessionID, req.session.userId || null, req.session.provider as string);
   if (userData) {
     req.userData = userData;
-    getThemes(req, res);
+    await getThemes(req, res);
   } else {
-    getThemesNoAuth(req, res);
+    await getThemesNoAuth(req, res);
   }
 });
 
@@ -55,7 +55,7 @@ router.get('/:theme_id', async (req, res) => {
   if (userData) {
     req.userData = userData;
   }
-  getThemeById(req, res);
+  await getThemeById(req, res);
 });
 
 // retrieves theme versions

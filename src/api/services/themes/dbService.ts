@@ -126,7 +126,7 @@ const deleteThemeJobFromDb = async (themeId: string) => {
     });
 
     if (themeJobQueueEntry.length === 0) {
-      throw { status: 404, message: 'No jobs found.' };
+      throw new Error('No jobs found.');
     }
 
     // remove jobs
@@ -165,23 +165,21 @@ const deleteThemeDataFromDb = async (themeId: string) => {
     });
 
     if (!existingTheme) {
-      throw { status: 404, message: 'Theme not found.' };
+      throw new Error('Theme not found.');
     }
 
     // remove theme
     await existingTheme.destroy({ transaction });
 
     // invalidate cache when a theme is removed
-    void (async () => {
-      try {
-        invalidateThemeSearchCache();
-        invalidateThemeDataCache(themeId);
-        invalidateThemeVersionsCache(themeId);
-        invalidateUserOwnedThemesCache(existingTheme.dataValues.userId);
-      } catch (error) {
-        Logger.error('Error invalidating cache:', error);
-      }
-    })();
+    try {
+      void invalidateThemeSearchCache();
+      void invalidateThemeDataCache(themeId);
+      void invalidateThemeVersionsCache(themeId);
+      void invalidateUserOwnedThemesCache(existingTheme.dataValues.userId);
+    } catch (error) {
+      Logger.error('Error invalidating cache:', error);
+    }
 
     return existingTheme;
   });

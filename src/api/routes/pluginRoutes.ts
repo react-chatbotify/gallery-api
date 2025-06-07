@@ -42,9 +42,9 @@ router.get('/', async (req, res) => {
   const userData = await getUserData(req.sessionID, req.session.userId || null, req.session.provider as string);
   if (userData) {
     req.userData = userData;
-    getPlugins(req, res);
+    await getPlugins(req, res);
   } else {
-    getPluginsNoAuth(req, res);
+    await getPluginsNoAuth(req, res);
   }
 });
 
@@ -54,7 +54,7 @@ router.get('/:plugin_id', async (req, res) => {
   if (userData) {
     req.userData = userData;
   }
-  getPluginById(req, res);
+  await getPluginById(req, res);
 });
 
 // retrieves plugin versions

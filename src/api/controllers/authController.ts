@@ -34,9 +34,7 @@ const handleCallback = (req: Request, res: Response) => {
     } else {
       // Fallback if no frontend URL is configured (critical server misconfiguration)
       Logger.error('CRITICAL: No FRONTEND_WEBSITE_URLS configured for OAuth state validation failure redirect.');
-      return res.status(400).json({
-        error: 'OAuth state validation failed and no default frontend URL configured.',
-      });
+      return sendErrorResponse(res, 400, 'OAuth state validation failed and no default frontend URL configured.');
     }
   }
 
@@ -62,9 +60,7 @@ const handleCallback = (req: Request, res: Response) => {
     } else {
       // This is a server misconfiguration or critical error if no allowed URLs are configured.
       Logger.error('CRITICAL: No FRONTEND_WEBSITE_URLS configured for redirection.');
-      return res.status(400).json({
-        error: 'Invalid redirect URL specified or application misconfigured.',
-      });
+      return sendErrorResponse(res, 400, 'Invalid redirect URL specified or application misconfigured.');
     }
   }
 
@@ -177,7 +173,7 @@ const handleLogout = (req: Request, res: Response) => {
  * @returns csrf token
  */
 const handleGetCsrfToken = (req: Request, res: Response) => {
-  return res.json({ csrfToken: req.session.csrfToken });
+  return sendSuccessResponse(res, 200, { csrfToken: req.session.csrfToken }, 'CSRF Token Retrieved.');
 };
 
 /**

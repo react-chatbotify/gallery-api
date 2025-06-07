@@ -1,4 +1,5 @@
 import 'express-session';
+import { SwaggerOptions } from 'swagger-ui-express';
 
 declare module 'express-session' {
   export interface SessionData {
@@ -12,6 +13,7 @@ declare module 'express-session' {
 
 declare module 'express-serve-static-core' {
   interface Request {
+    swaggerDoc: SwaggerOptions;
     userData: UserData;
   }
 }

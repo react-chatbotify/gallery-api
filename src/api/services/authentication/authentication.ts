@@ -38,7 +38,9 @@ const fetchTokensWithCode = async (sessionId: string, key: string, provider: str
       encrypt(tokenResponse.accessToken),
       { EX: 27900 }
     );
-  } catch (error) {}
+  } catch (error: unknown) {
+    Logger.error("Failed to save access token to redis: ", error);
+  }
 
   return tokenResponse;
 };
@@ -152,7 +154,8 @@ const getOrCreateUser = async (userProviderData: UserProviderData): Promise<User
     });
 
     return newUser;
-  } catch (error) {
+  } catch (error: unknown) {
+    Logger.error("Unable to get or create user: ", error);
     return null;
   }
 };

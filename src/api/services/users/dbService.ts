@@ -41,7 +41,7 @@ const addUserFavoriteThemeToDb = async (userId: string, themeId: string) => {
     // check if the theme exists
     const theme = await Theme.findByPk(themeId, { transaction });
     if (!theme) {
-      throw { status: 404, message: 'Theme not found.' };
+      throw new Error('Theme not found.');
     }
 
     // check if theme already favorited
@@ -54,7 +54,7 @@ const addUserFavoriteThemeToDb = async (userId: string, themeId: string) => {
     });
 
     if (existingFavorite) {
-      throw { status: 400, message: 'Theme already favorited.' };
+      throw new Error('Theme already favorited.');
     }
 
     // add favorite theme
@@ -67,18 +67,16 @@ const addUserFavoriteThemeToDb = async (userId: string, themeId: string) => {
     );
 
     // invalidate cache asynchronously
-    void (async () => {
-      try {
-        invalidateThemeDataCache(themeId);
-        invalidateUserFavoriteThemesCache(userId);
+    try {
+      void invalidateThemeDataCache(themeId);
+      void invalidateUserFavoriteThemesCache(userId);
 
-        // todo: this is to ensure favorites sorting is always accurate, but this is not performant
-        // should explore better options in future
-        invalidateThemeSearchCache();
-      } catch (error) {
-        Logger.error('Error invalidating cache:', error);
-      }
-    })();
+      // todo: this is to ensure favorites sorting is always accurate, but this is not performant
+      // should explore better options in future
+      void invalidateThemeSearchCache();
+    } catch (error) {
+      Logger.error('Error invalidating cache:', error);
+    }
 
     // increment the favorites count in the theme table
     await theme.increment('favoritesCount', { by: 1, transaction });
@@ -103,25 +101,23 @@ const removeUserFavoriteThemeFromDb = async (userId: string, themeId: string) =>
     });
 
     if (!existingFavorite) {
-      throw { status: 404, message: 'Favorite theme not found.' };
+      throw new Error('Favorite theme not found.');
     }
 
     // remove favorite theme
     await existingFavorite.destroy({ transaction });
 
     // invalidate cache asynchronously
-    void (async () => {
-      try {
-        invalidateThemeDataCache(themeId);
-        invalidateUserFavoriteThemesCache(userId);
+    try {
+      void invalidateThemeDataCache(themeId);
+      void invalidateUserFavoriteThemesCache(userId);
 
-        // todo: this is to ensure favorites sorting is always accurate, but this is not performant
-        // should explore better options in future
-        invalidateThemeSearchCache();
-      } catch (error) {
-        Logger.error('Error invalidating cache:', error);
-      }
-    })();
+      // todo: this is to ensure favorites sorting is always accurate, but this is not performant
+      // should explore better options in future
+      void invalidateThemeSearchCache();
+    } catch (error) {
+      Logger.error('Error invalidating cache:', error);
+    }
 
     // decrement the favorites count in the theme table
     const theme = await Theme.findByPk(themeId, { transaction });
@@ -181,7 +177,7 @@ const addUserFavoritePluginToDb = async (userId: string, pluginId: string) => {
     // check if the plugin exists
     const plugin = await Plugin.findByPk(pluginId, { transaction });
     if (!plugin) {
-      throw { status: 404, message: 'Plugin not found.' };
+      throw new Error('Plugin not found.');
     }
 
     // check if plugin already favorited
@@ -194,7 +190,7 @@ const addUserFavoritePluginToDb = async (userId: string, pluginId: string) => {
     });
 
     if (existingFavorite) {
-      throw { status: 400, message: 'Plugin already favorited.' };
+      throw new Error('Plugin already favorited.');
     }
 
     // add favorite plugin
@@ -207,18 +203,16 @@ const addUserFavoritePluginToDb = async (userId: string, pluginId: string) => {
     );
 
     // invalidate cache asynchronously
-    void (async () => {
-      try {
-        invalidatePluginDataCache(pluginId);
-        invalidateUserFavoritePluginsCache(userId);
+    try {
+      void invalidatePluginDataCache(pluginId);
+      void invalidateUserFavoritePluginsCache(userId);
 
-        // todo: this is to ensure favorites sorting is always accurate, but this is not performant
-        // should explore better options in future
-        invalidatePluginSearchCache();
-      } catch (error) {
-        Logger.error('Error invalidating cache:', error);
-      }
-    })();
+      // todo: this is to ensure favorites sorting is always accurate, but this is not performant
+      // should explore better options in future
+      void invalidatePluginSearchCache();
+    } catch (error) {
+      Logger.error('Error invalidating cache:', error);
+    }
 
     // increment the favorites count in the theme table
     await plugin.increment('favoritesCount', { by: 1, transaction });
@@ -243,25 +237,23 @@ const removeUserFavoritePluginFromDb = async (userId: string, pluginId: string) 
     });
 
     if (!existingFavorite) {
-      throw { status: 404, message: 'Favorite plugin not found.' };
+      throw new Error('Favorite plugin not found.');
     }
 
     // remove favorite plugin
     await existingFavorite.destroy({ transaction });
 
     // invalidate cache asynchronously
-    void (async () => {
-      try {
-        invalidatePluginDataCache(pluginId);
-        invalidateUserFavoritePluginsCache(userId);
+    try {
+      void invalidatePluginDataCache(pluginId);
+      void invalidateUserFavoritePluginsCache(userId);
 
-        // todo: this is to ensure favorites sorting is always accurate, but this is not performant
-        // should explore better options in future
-        invalidatePluginSearchCache();
-      } catch (error) {
-        Logger.error('Error invalidating cache:', error);
-      }
-    })();
+      // todo: this is to ensure favorites sorting is always accurate, but this is not performant
+      // should explore better options in future
+      void invalidatePluginSearchCache();
+    } catch (error) {
+      Logger.error('Error invalidating cache:', error);
+    }
 
     // decrement the favorites count in the plugin table
     const plugin = await Plugin.findByPk(pluginId, { transaction });

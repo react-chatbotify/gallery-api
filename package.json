@@ -32,14 +32,14 @@
     "start:watch-jobs": "nodemon --config nodemon-jobs.json"
   },
   "dependencies": {
-    "@types/express": "^4.17.17",
+    "@types/express": "^5.0.3",
     "axios": "^1.8.2",
     "chromadb": "^1.8.1",
     "connect-redis": "^7.1.1",
     "cors": "^2.8.5",
     "csrf": "^3.1.0",
     "dotenv": "^16.3.1",
-    "express": "^4.21.2",
+    "express": "^5.1.0",
     "express-session": "^1.18.1",
     "minio": "^8.0.1",
     "multer": "^2.0.1",

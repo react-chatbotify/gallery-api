@@ -11,15 +11,16 @@ import { getUserData } from '../services/authentication/authentication';
  *
  * @returns 403 if session not found, else proceed
  */
-const checkUserSession = async (req: Request, res: Response, next: NextFunction) => {
-  const userData = await getUserData(req.sessionID, req.session.userId || null, req.session.provider as string);
-
-  if (!userData) {
-    return res.status(401).json({ error: 'User session not found' });
-  }
-
-  req.userData = userData;
-  next();
+const checkUserSession = (req: Request, res: Response, next: NextFunction) => {
+  getUserData(req.sessionID, req.session.userId || null, req.session.provider as string)
+    .then((userData) => {
+      if (!userData) {
+        return res.status(401).json({ error: 'User session not found' });
+      }
+      req.userData = userData;
+      next();
+    })
+    .catch(next);
 };
 
 export default checkUserSession;

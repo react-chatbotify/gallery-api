@@ -19,9 +19,9 @@ const minioClient = new Client(minioClientOptions);
 const setUpMinioBucket = async () => {
   const bucketNames = ['theme-jobs-queue', 'plugins-images'];
   try {
-    bucketNames.forEach(async (name) => {
-      await createBucketIfNotExists(name);
-    });
+    await Promise.all(
+      bucketNames.map((name) => createBucketIfNotExists(name))
+    );
   } catch (err) {
     Logger.error('Failed to initialize MinIO bucket:', err);
   }
@@ -41,9 +41,9 @@ const createBucketIfNotExists = async (bucketName: string): Promise<void> => {
     } else {
       Logger.info(`Bucket ${bucketName} already exists.`);
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     // if bucket already owned, not an error (possible due to multiple api instances)
-    if (err.code == 'BucketAlreadyOwnedByYou') {
+    if ((err as { code?: string }).code === 'BucketAlreadyOwnedByYou') {
       return;
     }
     Logger.error('Error checking or creating bucket:', err);
@@ -62,7 +62,7 @@ const uploadFile = async (bucketName: string, objectName: string, filePath: stri
   try {
     await minioClient.fPutObject(bucketName, objectName, filePath);
     Logger.info(`File ${objectName} uploaded successfully.`);
-  } catch (err: any) {
+  } catch (err: unknown) {
     Logger.error('Error uploading file:', err);
     throw err;
   }
@@ -79,7 +79,7 @@ const uploadBuffer = async (bucketName: string, objectName: string, buffer: Buff
   try {
     await minioClient.putObject(bucketName, objectName, buffer);
     Logger.info(`File ${objectName} uploaded successfully.`);
-  } catch (err: any) {
+  } catch (err: unknown) {
     Logger.error('Error uploading file:', err);
     throw err;
   }
@@ -103,7 +103,7 @@ const getFile = async (bucketName: string, objectName: string): Promise<BucketIt
     }
     // if no object is found, return null
     return null;
-  } catch (err: any) {
+  } catch (err: unknown) {
     Logger.error('Error retrieving file:', err);
     throw err;
   }
@@ -119,7 +119,7 @@ const deleteFile = async (bucketName: string, objectName: string): Promise<void>
   try {
     await minioClient.removeObject(bucketName, objectName);
     Logger.info(`File ${objectName} deleted successfully.`);
-  } catch (err: any) {
+  } catch (err: unknown) {
     Logger.error('Error deleting file:', err);
     throw err;
   }

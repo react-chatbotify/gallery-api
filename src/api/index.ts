@@ -19,6 +19,7 @@ import { setUpMinioBucket } from './services/minioService';
 import swaggerDocument from './swagger';
 import Logger from './logger';
 import { csrfMiddleware } from './middleware/csrfMiddleware';
+import { Request, Response, NextFunction } from 'express';
 
 // load env variables
 dotenv.config();
@@ -29,10 +30,10 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // initialize database
-initializeDatabase();
+void initializeDatabase();
 
 // setup minio bucket
-setUpMinioBucket();
+void setUpMinioBucket();
 
 const app = express();
 
@@ -114,12 +115,12 @@ if (process.env.NODE_ENV !== 'production') {
     const componentsPath = path.join(__dirname, './swagger', 'components.js');
     const componentsData = await import(componentsPath);
 
-    (swaggerDocument as any).paths = result;
-    (swaggerDocument as any).components = componentsData.default.components;
+    (swaggerDocument as Record<string, unknown>).paths = result;
+    (swaggerDocument as Record<string, unknown>).components = componentsData.default.components;
 
     app.use(
       '/api-docs',
-      (req: any, res: any, next: any) => {
+      (req: Request, res: Response, next: NextFunction) => {
         req.swaggerDoc = swaggerDocument;
         next();
       },
@@ -132,7 +133,7 @@ if (process.env.NODE_ENV !== 'production') {
     Logger.info(`Swagger docs loaded.`);
   };
 
-  loadSwaggerFiles();
+  void loadSwaggerFiles();
 } else {
   Logger.info('Swagger docs are disabled in production.');
 }

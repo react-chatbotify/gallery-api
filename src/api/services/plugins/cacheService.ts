@@ -41,7 +41,7 @@ const getPluginSearchFromCache = async (
  * @param pageSize page size to construct cache key
  * @param plugins plugins to save
  */
-const savePluginSearchToCache = async (
+const savePluginSearchToCache = (
   searchQuery: string,
   pageNum: number,
   pageSize: number,
@@ -51,16 +51,16 @@ const savePluginSearchToCache = async (
 ) => {
   const searchKey = `${PLUGIN_SEARCH_CACHE_PREFIX}:${searchQuery}:${pageNum}:${pageSize}:${sortBy}:${sortDirection}`;
   const pluginIds = plugins.map((plugin) => plugin.id);
-  redisEphemeralClient.set(searchKey, JSON.stringify(pluginIds), { EX: 900 });
+  void redisEphemeralClient.set(searchKey, JSON.stringify(pluginIds), { EX: 900 });
 };
 
 /**
  * Invalidates plugin search cache (all).
  */
-const invalidatePluginSearchCache = async () => {
-  redisEphemeralClient.keys(`${process.env.PLUGIN_SEARCH_CACHE_PREFIX}:*`).then((keys) => {
-    keys.forEach(async (key) => {
-      await redisEphemeralClient.del(key);
+const invalidatePluginSearchCache = () => {
+  void redisEphemeralClient.keys(`${process.env.PLUGIN_SEARCH_CACHE_PREFIX}:*`).then((keys) => {
+    keys.forEach((key) => {
+      void redisEphemeralClient.del(key);
     });
   });
 };
@@ -107,10 +107,10 @@ const getPluginDataFromCache = async (pluginIds: string[]): Promise<PluginData[]
  *
  * @param plugins plugins to save
  */
-const savePluginDataToCache = async (plugins: PluginData[]) => {
+const savePluginDataToCache = (plugins: PluginData[]) => {
   for (const plugin of plugins) {
     const dataKey = `${PLUGIN_DATA_CACHE_PREFIX}:${plugin.id}`;
-    redisEphemeralClient.set(dataKey, JSON.stringify(plugin), { EX: 1800 });
+    void redisEphemeralClient.set(dataKey, JSON.stringify(plugin), { EX: 1800 });
   }
 };
 
@@ -119,9 +119,9 @@ const savePluginDataToCache = async (plugins: PluginData[]) => {
  *
  * @param themeId id of plugin to invalidate
  */
-const invalidatePluginDataCache = async (pluginId: string) => {
+const invalidatePluginDataCache = (pluginId: string) => {
   const dataKey = `${PLUGIN_DATA_CACHE_PREFIX}:${pluginId}`;
-  redisEphemeralClient.del(dataKey);
+  void redisEphemeralClient.del(dataKey);
 };
 
 /**
@@ -147,9 +147,9 @@ const getPluginVersionsFromCache = async (pluginId: string): Promise<PluginVersi
  * @param themeId id of plugin to save versions for
  * @param versions versions to save
  */
-const savePluginVersionsToCache = async (pluginId: string, versions: PluginVersionData[]) => {
+const savePluginVersionsToCache = (pluginId: string, versions: PluginVersionData[]) => {
   const versionsKey = `${PLUGIN_VERSIONS_CACHE_PREFIX}:${pluginId}`;
-  redisEphemeralClient.set(versionsKey, JSON.stringify(versions), { EX: 1800 });
+  void redisEphemeralClient.set(versionsKey, JSON.stringify(versions), { EX: 1800 });
 };
 
 /**
@@ -157,9 +157,9 @@ const savePluginVersionsToCache = async (pluginId: string, versions: PluginVersi
  *
  * @param themeId id of plugin to invalidate versions for
  */
-const invalidatePluginVersionsCache = async (pluginId: string) => {
+const invalidatePluginVersionsCache = (pluginId: string) => {
   const versionsKey = `${PLUGIN_VERSIONS_CACHE_PREFIX}:${pluginId}`;
-  redisEphemeralClient.del(versionsKey);
+  void redisEphemeralClient.del(versionsKey);
 };
 
 export {

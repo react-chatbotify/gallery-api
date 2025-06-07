@@ -100,16 +100,14 @@ const addPluginDataToDb = async (
   });
 
   // invalidate cache when a plugin is added
-  void (async () => {
-    try {
-      invalidatePluginSearchCache();
-      invalidatePluginDataCache(pluginId);
-      invalidatePluginVersionsCache(pluginId);
-      invalidateUserOwnedPluginsCache(userId);
-    } catch (error) {
-      Logger.error('Error invalidating cache:', error);
-    }
-  })();
+  try {
+    void invalidatePluginSearchCache();
+    void invalidatePluginDataCache(pluginId);
+    void invalidatePluginVersionsCache(pluginId);
+    void invalidateUserOwnedPluginsCache(userId);
+  } catch (error) {
+    Logger.error('Error invalidating cache:', error);
+  }
 
   return plugin;
 };
@@ -130,23 +128,21 @@ const deletePluginDataFromDb = async (pluginId: string) => {
     });
 
     if (!existingPlugin) {
-      throw { status: 404, message: 'Plugin not found.' };
+      throw new Error('Plugin not found.');
     }
 
     // remove plugin
     await existingPlugin.destroy({ transaction });
 
     // invalidate cache when a plugin is removed
-    void (async () => {
-      try {
-        invalidatePluginSearchCache();
-        invalidatePluginDataCache(pluginId);
-        invalidatePluginVersionsCache(pluginId);
-        invalidateUserOwnedPluginsCache(existingPlugin.dataValues.userId);
-      } catch (error) {
-        Logger.error('Error invalidating cache:', error);
-      }
-    })();
+    try {
+      void invalidatePluginSearchCache();
+      void invalidatePluginDataCache(pluginId);
+      void invalidatePluginVersionsCache(pluginId);
+      void invalidateUserOwnedPluginsCache(existingPlugin.dataValues.userId);
+    } catch (error) {
+      Logger.error('Error invalidating cache:', error);
+    }
 
     return existingPlugin;
   });
