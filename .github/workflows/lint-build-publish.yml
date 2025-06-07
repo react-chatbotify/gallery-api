@@ -90,7 +90,7 @@ jobs:
 
       - name: Detect changed paths
         id: changes
-        uses: dorny/paths-filter@v2
+        uses: dorny/paths-filter@v3
         with:
           filters: |
             api:
