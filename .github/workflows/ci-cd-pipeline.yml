@@ -1,0 +1,41 @@
+name: CI/CD Status
+run-name: Full CI/CD Pipeline
+
+on:
+  push:
+    # Triggers on pushes to main/development branches.
+    branches: ["main", "development"]
+    paths-ignore:
+      - "*.md"
+      - "assets/**"
+      - "docs/**"
+      - "scripts/**"
+      - ".github/**/*.md"
+      - ".github/FUNDING.yml"
+      - ".eslintrc"
+      - ".gitignore"
+  pull_request:
+    # Triggers on pull requests to main/development branches.
+    branches: ["main", "development"]
+    paths-ignore:
+      - "*.md"
+      - "assets/**"
+      - "docs/**"
+      - "scripts/**"
+      - ".github/**/*.md"
+      - ".github/FUNDING.yml"
+      - ".eslintrc"
+      - ".gitignore"
+  workflow_dispatch:
+    # Allows manual triggering of the workflow.
+
+jobs:
+  trigger-full-ci:
+    # Triggers the full CI/CD pipeline.
+    name: CI
+    uses: ./.github/workflows/lint-build-publish.yml
+    secrets: inherit
+    with:
+      target_env: ${{ github.ref == 'refs/heads/main' && 'production' || github.ref == 'refs/heads/development' && 'development' || 'invalid' }}
+      node-version: "22.4.1"
+      skip_deploy: ${{ github.event_name == 'pull_request' }} # skip deployment if it's a pull request

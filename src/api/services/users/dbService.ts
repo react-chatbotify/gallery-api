@@ -1,11 +1,25 @@
-import { FavoritePlugin, FavoriteTheme, Plugin, Theme } from "../../databases/sql/models";
-import { sequelize } from "../../databases/sql/sql";
-import { PluginData } from "../../interfaces/plugins/PluginData";
-import { ThemeData } from "../../interfaces/themes/ThemeData";
-import Logger from "../../logger";
-import { invalidatePluginDataCache, invalidatePluginSearchCache } from "../plugins/cacheService";
-import { invalidateThemeDataCache, invalidateThemeSearchCache } from "../themes/cacheService";
-import { invalidateUserFavoritePluginsCache, invalidateUserFavoriteThemesCache } from "./cacheService";
+import {
+  FavoritePlugin,
+  FavoriteTheme,
+  Plugin,
+  Theme,
+} from '../../databases/sql/models';
+import { sequelize } from '../../databases/sql/sql';
+import { PluginData } from '../../interfaces/plugins/PluginData';
+import { ThemeData } from '../../interfaces/themes/ThemeData';
+import Logger from '../../logger';
+import {
+  invalidatePluginDataCache,
+  invalidatePluginSearchCache,
+} from '../plugins/cacheService';
+import {
+  invalidateThemeDataCache,
+  invalidateThemeSearchCache,
+} from '../themes/cacheService';
+import {
+  invalidateUserFavoritePluginsCache,
+  invalidateUserFavoriteThemesCache,
+} from './cacheService';
 
 /**
  * Retrieves user favorite themes from database.
@@ -14,18 +28,22 @@ import { invalidateUserFavoritePluginsCache, invalidateUserFavoriteThemesCache }
  *
  * @returns array of user favorite themes
  */
-const getUserFavoriteThemesFromDb = async (userId: string): Promise<ThemeData[]> => {
-    const userFavorites = await FavoriteTheme.findAll({
-        where: { userId },
-        include: [{
-            model: Theme,
-            required: true
-        }],
-        raw: true,
-        nest: true
-    }) as unknown as { Theme: ThemeData }[];
+const getUserFavoriteThemesFromDb = async (
+  userId: string,
+): Promise<ThemeData[]> => {
+  const userFavorites = (await FavoriteTheme.findAll({
+    where: { userId },
+    include: [
+      {
+        model: Theme,
+        required: true,
+      },
+    ],
+    raw: true,
+    nest: true,
+  })) as unknown as { Theme: ThemeData }[];
 
-    return userFavorites.map(favorite => favorite.Theme);
+  return userFavorites.map((favorite) => favorite.Theme);
 };
 
 /**
@@ -35,50 +53,53 @@ const getUserFavoriteThemesFromDb = async (userId: string): Promise<ThemeData[]>
  * @param themeId id of theme favorited
  */
 const addUserFavoriteThemeToDb = async (userId: string, themeId: string) => {
-	await sequelize.transaction(async (transaction) => {
-		// check if the theme exists
-		const theme = await Theme.findByPk(themeId, { transaction });
-		if (!theme) {
-			throw { status: 404, message: "Theme not found." };
-		}
+  await sequelize.transaction(async (transaction) => {
+    // check if the theme exists
+    const theme = await Theme.findByPk(themeId, { transaction });
+    if (!theme) {
+      throw { status: 404, message: 'Theme not found.' };
+    }
 
-		// check if theme already favorited
-		const existingFavorite = await FavoriteTheme.findOne({
-			where: {
-				userId: userId,
-				themeId: themeId
-			},
-			transaction
-		});
+    // check if theme already favorited
+    const existingFavorite = await FavoriteTheme.findOne({
+      where: {
+        userId: userId,
+        themeId: themeId,
+      },
+      transaction,
+    });
 
-		if (existingFavorite) {
-			throw { status: 400, message: "Theme already favorited." };
-		}
+    if (existingFavorite) {
+      throw { status: 400, message: 'Theme already favorited.' };
+    }
 
-		// add favorite theme
-		await FavoriteTheme.create({
-			userId: userId,
-			themeId: themeId
-		}, { transaction });
+    // add favorite theme
+    await FavoriteTheme.create(
+      {
+        userId: userId,
+        themeId: themeId,
+      },
+      { transaction },
+    );
 
-		// invalidate cache asynchronously
-		void (async () => {
-			try {
-				invalidateThemeDataCache(themeId);
-				invalidateUserFavoriteThemesCache(userId);
+    // invalidate cache asynchronously
+    void (async () => {
+      try {
+        invalidateThemeDataCache(themeId);
+        invalidateUserFavoriteThemesCache(userId);
 
-				// todo: this is to ensure favorites sorting is always accurate, but this is not performant
-				// should explore better options in future
-				invalidateThemeSearchCache();
-			} catch (error) {
-				Logger.error("Error invalidating cache:", error);
-			}
-		})();
+        // todo: this is to ensure favorites sorting is always accurate, but this is not performant
+        // should explore better options in future
+        invalidateThemeSearchCache();
+      } catch (error) {
+        Logger.error('Error invalidating cache:', error);
+      }
+    })();
 
-		// increment the favorites count in the theme table
-		await theme.increment("favoritesCount", { by: 1, transaction });
-	});
-}
+    // increment the favorites count in the theme table
+    await theme.increment('favoritesCount', { by: 1, transaction });
+  });
+};
 
 /**
  * Removes user favorite theme from database.
@@ -86,45 +107,48 @@ const addUserFavoriteThemeToDb = async (userId: string, themeId: string) => {
  * @param userId id of user to unfavorite theme
  * @param themeId id of theme unfavorited
  */
-const removeUserFavoriteThemeFromDb = async (userId: string, themeId: string) => {
-	await sequelize.transaction(async (transaction) => {
-		// check if theme is favorited
-		const existingFavorite = await FavoriteTheme.findOne({
-			where: {
-				userId: userId,
-				themeId: themeId
-			},
-			transaction
-		});
+const removeUserFavoriteThemeFromDb = async (
+  userId: string,
+  themeId: string,
+) => {
+  await sequelize.transaction(async (transaction) => {
+    // check if theme is favorited
+    const existingFavorite = await FavoriteTheme.findOne({
+      where: {
+        userId: userId,
+        themeId: themeId,
+      },
+      transaction,
+    });
 
-		if (!existingFavorite) {
-			throw { status: 404, message: "Favorite theme not found." };
-		}
+    if (!existingFavorite) {
+      throw { status: 404, message: 'Favorite theme not found.' };
+    }
 
-		// remove favorite theme
-		await existingFavorite.destroy({ transaction });
+    // remove favorite theme
+    await existingFavorite.destroy({ transaction });
 
-		// invalidate cache asynchronously
-		void (async () => {
-			try {
-				invalidateThemeDataCache(themeId);
-				invalidateUserFavoriteThemesCache(userId);
+    // invalidate cache asynchronously
+    void (async () => {
+      try {
+        invalidateThemeDataCache(themeId);
+        invalidateUserFavoriteThemesCache(userId);
 
-				// todo: this is to ensure favorites sorting is always accurate, but this is not performant
-				// should explore better options in future
-				invalidateThemeSearchCache();
-			} catch (error) {
-				Logger.error("Error invalidating cache:", error);
-			}
-		})();
+        // todo: this is to ensure favorites sorting is always accurate, but this is not performant
+        // should explore better options in future
+        invalidateThemeSearchCache();
+      } catch (error) {
+        Logger.error('Error invalidating cache:', error);
+      }
+    })();
 
-		// decrement the favorites count in the theme table
-		const theme = await Theme.findByPk(themeId, { transaction });
-		if (theme) {
-			await theme.decrement("favoritesCount", { by: 1, transaction });
-		}
-	});
-}
+    // decrement the favorites count in the theme table
+    const theme = await Theme.findByPk(themeId, { transaction });
+    if (theme) {
+      await theme.decrement('favoritesCount', { by: 1, transaction });
+    }
+  });
+};
 
 /**
  * Retrieves user-owned themes from database.
@@ -133,14 +157,16 @@ const removeUserFavoriteThemeFromDb = async (userId: string, themeId: string) =>
  *
  * @returns array of ids representing user-owned themes
  */
-const getUserOwnedThemesFromDb = async (userId: string): Promise<ThemeData[]> => {
-	const userOwnedThemes = await Theme.findAll({
-		where: { userId },
-		raw: true,
-	}) as unknown as ThemeData[];
+const getUserOwnedThemesFromDb = async (
+  userId: string,
+): Promise<ThemeData[]> => {
+  const userOwnedThemes = (await Theme.findAll({
+    where: { userId },
+    raw: true,
+  })) as unknown as ThemeData[];
 
-	return userOwnedThemes;
-}
+  return userOwnedThemes;
+};
 
 /**
  * Retrieves user favorite plugins from database.
@@ -149,18 +175,22 @@ const getUserOwnedThemesFromDb = async (userId: string): Promise<ThemeData[]> =>
  *
  * @returns array of user favorite plugins
  */
-const getUserFavoritePluginsFromDb = async (userId: string): Promise<PluginData[]> => {
-    const userFavorites = await FavoritePlugin.findAll({
-        where: { userId },
-        include: [{
-            model: Plugin,
-            required: true
-        }],
-        raw: true,
-        nest: true
-    }) as unknown as { Plugin: PluginData }[];
+const getUserFavoritePluginsFromDb = async (
+  userId: string,
+): Promise<PluginData[]> => {
+  const userFavorites = (await FavoritePlugin.findAll({
+    where: { userId },
+    include: [
+      {
+        model: Plugin,
+        required: true,
+      },
+    ],
+    raw: true,
+    nest: true,
+  })) as unknown as { Plugin: PluginData }[];
 
-    return userFavorites.map(favorite => favorite.Plugin);
+  return userFavorites.map((favorite) => favorite.Plugin);
 };
 
 /**
@@ -170,50 +200,53 @@ const getUserFavoritePluginsFromDb = async (userId: string): Promise<PluginData[
  * @param pluginId id of plugin favorited
  */
 const addUserFavoritePluginToDb = async (userId: string, pluginId: string) => {
-	await sequelize.transaction(async (transaction) => {
-		// check if the plugin exists
-		const plugin = await Plugin.findByPk(pluginId, { transaction });
-		if (!plugin) {
-			throw { status: 404, message: "Plugin not found." };
-		}
+  await sequelize.transaction(async (transaction) => {
+    // check if the plugin exists
+    const plugin = await Plugin.findByPk(pluginId, { transaction });
+    if (!plugin) {
+      throw { status: 404, message: 'Plugin not found.' };
+    }
 
-		// check if plugin already favorited
-		const existingFavorite = await FavoritePlugin.findOne({
-			where: {
-				userId: userId,
-				pluginId: pluginId
-			},
-			transaction
-		});
+    // check if plugin already favorited
+    const existingFavorite = await FavoritePlugin.findOne({
+      where: {
+        userId: userId,
+        pluginId: pluginId,
+      },
+      transaction,
+    });
 
-		if (existingFavorite) {
-			throw { status: 400, message: "Plugin already favorited." };
-		}
+    if (existingFavorite) {
+      throw { status: 400, message: 'Plugin already favorited.' };
+    }
 
-		// add favorite plugin
-		await FavoritePlugin.create({
-			userId: userId,
-			pluginId: pluginId
-		}, { transaction });
+    // add favorite plugin
+    await FavoritePlugin.create(
+      {
+        userId: userId,
+        pluginId: pluginId,
+      },
+      { transaction },
+    );
 
-		// invalidate cache asynchronously
-		void (async () => {
-			try {
-				invalidatePluginDataCache(pluginId);
-				invalidateUserFavoritePluginsCache(userId);
+    // invalidate cache asynchronously
+    void (async () => {
+      try {
+        invalidatePluginDataCache(pluginId);
+        invalidateUserFavoritePluginsCache(userId);
 
-				// todo: this is to ensure favorites sorting is always accurate, but this is not performant
-				// should explore better options in future
-				invalidatePluginSearchCache();
-			} catch (error) {
-				Logger.error("Error invalidating cache:", error);
-			}
-		})();
+        // todo: this is to ensure favorites sorting is always accurate, but this is not performant
+        // should explore better options in future
+        invalidatePluginSearchCache();
+      } catch (error) {
+        Logger.error('Error invalidating cache:', error);
+      }
+    })();
 
-		// increment the favorites count in the theme table
-		await plugin.increment("favoritesCount", { by: 1, transaction });
-	});
-}
+    // increment the favorites count in the theme table
+    await plugin.increment('favoritesCount', { by: 1, transaction });
+  });
+};
 
 /**
  * Removes user favorite plugin from database.
@@ -221,45 +254,48 @@ const addUserFavoritePluginToDb = async (userId: string, pluginId: string) => {
  * @param userId id of user to unfavorite plugin
  * @param pluginId id of plugin unfavorited
  */
-const removeUserFavoritePluginFromDb = async (userId: string, pluginId: string) => {
-	await sequelize.transaction(async (transaction) => {
-		// check if plugin is favorited
-		const existingFavorite = await FavoritePlugin.findOne({
-			where: {
-				userId: userId,
-				pluginId: pluginId
-			},
-			transaction
-		});
+const removeUserFavoritePluginFromDb = async (
+  userId: string,
+  pluginId: string,
+) => {
+  await sequelize.transaction(async (transaction) => {
+    // check if plugin is favorited
+    const existingFavorite = await FavoritePlugin.findOne({
+      where: {
+        userId: userId,
+        pluginId: pluginId,
+      },
+      transaction,
+    });
 
-		if (!existingFavorite) {
-			throw { status: 404, message: "Favorite plugin not found." };
-		}
+    if (!existingFavorite) {
+      throw { status: 404, message: 'Favorite plugin not found.' };
+    }
 
-		// remove favorite plugin
-		await existingFavorite.destroy({ transaction });
+    // remove favorite plugin
+    await existingFavorite.destroy({ transaction });
 
-		// invalidate cache asynchronously
-		void (async () => {
-			try {
-				invalidatePluginDataCache(pluginId);
-				invalidateUserFavoritePluginsCache(userId);
+    // invalidate cache asynchronously
+    void (async () => {
+      try {
+        invalidatePluginDataCache(pluginId);
+        invalidateUserFavoritePluginsCache(userId);
 
-				// todo: this is to ensure favorites sorting is always accurate, but this is not performant
-				// should explore better options in future
-				invalidatePluginSearchCache();
-			} catch (error) {
-				Logger.error("Error invalidating cache:", error);
-			}
-		})();
+        // todo: this is to ensure favorites sorting is always accurate, but this is not performant
+        // should explore better options in future
+        invalidatePluginSearchCache();
+      } catch (error) {
+        Logger.error('Error invalidating cache:', error);
+      }
+    })();
 
-		// decrement the favorites count in the plugin table
-		const plugin = await Plugin.findByPk(pluginId, { transaction });
-		if (plugin) {
-			await plugin.decrement("favoritesCount", { by: 1, transaction });
-		}
-	});
-}
+    // decrement the favorites count in the plugin table
+    const plugin = await Plugin.findByPk(pluginId, { transaction });
+    if (plugin) {
+      await plugin.decrement('favoritesCount', { by: 1, transaction });
+    }
+  });
+};
 
 /**
  * Retrieves user-owned plugins from database.
@@ -268,22 +304,24 @@ const removeUserFavoritePluginFromDb = async (userId: string, pluginId: string) 
  *
  * @returns array of ids representing user-owned plugins
  */
-const getUserOwnedPluginsFromDb = async (userId: string): Promise<PluginData[]> => {
-	const userOwnedPlugins = await Plugin.findAll({
-        where: { userId },
-        raw: true,
-    }) as unknown as PluginData[];
+const getUserOwnedPluginsFromDb = async (
+  userId: string,
+): Promise<PluginData[]> => {
+  const userOwnedPlugins = (await Plugin.findAll({
+    where: { userId },
+    raw: true,
+  })) as unknown as PluginData[];
 
-    return userOwnedPlugins;
-}
+  return userOwnedPlugins;
+};
 
 export {
-	getUserFavoriteThemesFromDb,
-	addUserFavoriteThemeToDb,
-	removeUserFavoriteThemeFromDb,
-	getUserOwnedThemesFromDb,
-	getUserFavoritePluginsFromDb,
-	addUserFavoritePluginToDb,
-	removeUserFavoritePluginFromDb,
-	getUserOwnedPluginsFromDb,
-}
+  getUserFavoriteThemesFromDb,
+  addUserFavoriteThemeToDb,
+  removeUserFavoriteThemeFromDb,
+  getUserOwnedThemesFromDb,
+  getUserFavoritePluginsFromDb,
+  addUserFavoritePluginToDb,
+  removeUserFavoritePluginFromDb,
+  getUserOwnedPluginsFromDb,
+};

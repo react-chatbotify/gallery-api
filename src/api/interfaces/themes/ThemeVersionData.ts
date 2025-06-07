@@ -1,11 +1,9 @@
 // theme version data
 interface ThemeVersionData {
-	id: string;
-	themeId: string;
-	version: string;
-	createdAt: Date;
+  id: string;
+  themeId: string;
+  version: string;
+  createdAt: Date;
 }
 
-export {
-	ThemeVersionData
-};
+export { ThemeVersionData };

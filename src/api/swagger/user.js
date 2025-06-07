@@ -65,6 +65,59 @@ const userPaths = {
 			}
 		}
 	},
+	"/api/v1/users/plugins": {
+		"get": {
+			"tags": ["Users Module"],
+			"summary": "Retrieves plugins belonging to the user.",
+			"description": "Fetches the list of plugins that the authenticated user owns or has created.",
+			"parameters": [
+				{
+					"in": "query",
+					"name": "userId",
+					"schema": { "type": "string" },
+					"required": false,
+					"description": "The ID of the user whose owned plugins are being requested. Defaults to the authenticated user if not provided or if the authenticated user is not an admin."
+				}
+			],
+			"responses": {
+				"200": {
+					"description": "User's owned plugins retrieved successfully.",
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/ApiResult" },
+							"example": {
+								"success": true,
+								"message": "User owned plugins fetched successfully.",
+								"data": [
+									{
+										"id": "plugin456",
+										"name": "My Awesome Plugin",
+										"description": "A plugin I created.",
+										"version": "1.0.0"
+									}
+								],
+								"errors": []
+							}
+						}
+					}
+				},
+				"403": {
+					"description": "Unauthorized access.",
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/ApiResult" },
+							"example": {
+								"success": false,
+								"message": "Unauthorized access.",
+								"data": null,
+								"errors": []
+							}
+						}
+					}
+				}
+			}
+		}
+	},
 	"/api/v1/users/themes": {
 		"get": {
 			"tags": [

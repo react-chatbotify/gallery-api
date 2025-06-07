@@ -219,42 +219,36 @@ const themePaths = {
 								"styles": {
 									"type": "string",
 									"format": "binary",
-									"description": "CSS file for the theme."
+									"description": "CSS file for the theme (.css)."
 								},
 								"options": {
 									"type": "string",
 									"format": "binary",
-									"description": "JSON file containing theme options."
+									"description": "JSON file containing theme options (.json)."
 								},
 								"display": {
 									"type": "string",
 									"format": "binary",
-									"description": "PNG file for the theme display image."
+									"description": "PNG file for the theme display image (.png)."
+								},
+								"themeId": {
+									"type": "string",
+									"description": "The ID of the theme being published (e.g., 'my-theme'). Required if updating an existing theme."
+								},
+								"name": {
+									"type": "string",
+									"description": "The name of the theme (e.g., 'My Awesome Theme'). Required for new themes."
+								},
+								"description": {
+									"type": "string",
+									"description": "A brief description of the theme."
+								},
+								"version": {
+									"type": "string",
+									"description": "The version of the theme being published (e.g., '1.0.0'). Required."
 								}
-							}
-						},
-						"application/json": {
-							"schema": {
-								"type": "object",
-								"properties": {
-									"themeId": {
-										"type": "string",
-										"description": "The ID of the theme being published."
-									},
-									"name": {
-										"type": "string",
-										"description": "The name of the theme."
-									},
-									"description": {
-										"type": "string",
-										"description": "A brief description of the theme."
-									},
-									"version": {
-										"type": "string",
-										"description": "The version of the theme being published."
-									}
-								}
-							}
+							},
+							"required": ["name", "version", "styles", "options", "display"]
 						}
 					}
 				}

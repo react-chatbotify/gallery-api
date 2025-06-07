@@ -230,10 +230,10 @@ const pluginPaths = {
 																	"type": "string",
 																	"description": "Url to the published package."
 															},
-															"file": {
+															"imgUrl": {
 																	"type": "string",
 																	"format": "binary",
-																	"description": "Image url for the plugin."
+																	"description": "Image file for the plugin (e.g., a PNG logo)."
 															}
 													}
 											}

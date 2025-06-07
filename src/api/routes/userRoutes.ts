@@ -1,50 +1,54 @@
-import express from "express";
+import express from 'express';
 
 import {
-	addUserFavoritePlugin,
-	addUserFavoriteTheme,
-	getUserFavoritePlugins,
-	getUserFavoriteThemes,
-	getUserOwnedPlugins,
-	getUserProfile,
-	getUserOwnedThemes,
-	removeUserFavoritePlugin,
-	removeUserFavoriteTheme,
-	setUserAcceptAuthorAgreement,
-} from "../controllers/userController";
-import checkUserSession from "../middleware/userSessionMiddleware";
+  addUserFavoritePlugin,
+  addUserFavoriteTheme,
+  getUserFavoritePlugins,
+  getUserFavoriteThemes,
+  getUserOwnedPlugins,
+  getUserProfile,
+  getUserOwnedThemes,
+  removeUserFavoritePlugin,
+  removeUserFavoriteTheme,
+  setUserAcceptAuthorAgreement,
+} from '../controllers/userController';
+import checkUserSession from '../middleware/userSessionMiddleware';
 
 const router = express.Router();
 
 // retrieves user data
-router.get("/profile", checkUserSession, getUserProfile);
+router.get('/profile', checkUserSession, getUserProfile);
 
 // retrieves user themes
-router.get("/themes", checkUserSession, getUserOwnedThemes);
+router.get('/themes', checkUserSession, getUserOwnedThemes);
 
 // retrieves user favorited themes
-router.get("/themes/favorited", checkUserSession, getUserFavoriteThemes);
+router.get('/themes/favorited', checkUserSession, getUserFavoriteThemes);
 
 // favorites a theme for user
-router.post("/themes/favorited", checkUserSession, addUserFavoriteTheme);
+router.post('/themes/favorited', checkUserSession, addUserFavoriteTheme);
 
 // unfavorites a theme for user
-router.delete("/themes/favorited", checkUserSession, removeUserFavoriteTheme)
+router.delete('/themes/favorited', checkUserSession, removeUserFavoriteTheme);
 
 // retrieves user plugins
-router.get("/plugins", checkUserSession, getUserOwnedPlugins);
+router.get('/plugins', checkUserSession, getUserOwnedPlugins);
 
 // retrieves user favorited plugins
-router.get("/plugins/favorited", checkUserSession, getUserFavoritePlugins);
+router.get('/plugins/favorited', checkUserSession, getUserFavoritePlugins);
 
 // favorites a plugin for user
-router.post("/plugins/favorited", checkUserSession, addUserFavoritePlugin);
+router.post('/plugins/favorited', checkUserSession, addUserFavoritePlugin);
 
 // unfavorites a plugin for user
-router.delete("/plugins/favorited", checkUserSession, removeUserFavoritePlugin)
+router.delete('/plugins/favorited', checkUserSession, removeUserFavoritePlugin);
 
 // agree/disagree to user author agreement
-router.post("/author-agreement", checkUserSession, setUserAcceptAuthorAgreement);
+router.post(
+  '/author-agreement',
+  checkUserSession,
+  setUserAcceptAuthorAgreement,
+);
 
 // todo: add an endpoint for users to attempt to claim theme ownership
 // required if a theme is on github but the author has never logged

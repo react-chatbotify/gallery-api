@@ -1,5 +1,5 @@
-import { runProcessThemeQueue } from "./processQueuedThemes";
-import { runSyncThemesFromGitHub } from "./syncThemesFromGitHub";
+import { runProcessThemeQueue } from './processQueuedThemes';
+import { runSyncThemesFromGitHub } from './syncThemesFromGitHub';
 
 // on initial start, always sync
 runSyncThemesFromGitHub();

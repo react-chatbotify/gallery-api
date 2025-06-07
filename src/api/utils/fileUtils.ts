@@ -6,11 +6,9 @@
  * @returns file extension (lower case)
  */
 const getFileExtension = (filename: string) => {
-	return filename
-		.slice(((filename.lastIndexOf('.') - 1) >>> 0) + 2)
-		.toLowerCase();
-}
+  return filename
+    .slice(((filename.lastIndexOf('.') - 1) >>> 0) + 2)
+    .toLowerCase();
+};
 
-export {
-	getFileExtension
-}
+export { getFileExtension };

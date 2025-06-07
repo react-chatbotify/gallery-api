@@ -1,16 +1,17 @@
 import 'express-session';
 
 declare module 'express-session' {
-	export interface SessionData {
-		userId: string;
-		provider: string;
-		oAuthState?: string;
-		postLoginRedirectUrl: string;
-	}
+  export interface SessionData {
+    userId: string;
+    provider: string;
+    oAuthState?: string;
+    postLoginRedirectUrl: string;
+    csrfToken: string;
+  }
 }
 
 declare module 'express-serve-static-core' {
-	interface Request {
-		userData: UserData;
-	}
+  interface Request {
+    userData: UserData;
+  }
 }

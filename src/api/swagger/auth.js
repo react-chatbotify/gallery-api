@@ -96,6 +96,71 @@ const authPaths = {
 				}
 			}
 		}
+	},
+	"/api/v1/auth/logout": {
+		"get": {
+			"tags": ["Authentication Module"],
+			"summary": "Logs out the current user.",
+			"description": "Clears the user's session, effectively logging them out.",
+			"responses": {
+				"200": {
+					"description": "Logout successful.",
+					"content": {
+						"application/json": {
+							"schema": { "$ref": "#/components/schemas/ApiResult" },
+							"example": {
+								"success": true,
+								"message": "Logout successful.",
+								"data": null
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"/api/v1/auth/csrf-token": {
+		"get": {
+			"tags": ["Authentication Module"],
+			"summary": "Provides a CSRF token.",
+			"description": "Fetches a CSRF token to be used in subsequent state-changing requests.",
+			"responses": {
+				"200": {
+					"description": "CSRF token successfully generated.",
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"csrfToken": {
+										"type": "string",
+										"example": "random_csrf_token_string"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"/api/v1/auth/github/login": {
+		"get": {
+			"tags": ["Authentication Module"],
+			"summary": "Initiates GitHub OAuth login.",
+			"description": "Redirects the user to GitHub to authorize the application.",
+			"responses": {
+				"302": {
+					"description": "Redirects to GitHub authorization URL.",
+					"headers": {
+						"Location": {
+							"description": "The GitHub authorization URL.",
+							"schema": { "type": "string" }
+						}
+					}
+				}
+			}
+		}
 	}
 };
 
