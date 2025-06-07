@@ -36,7 +36,7 @@ FavoritePlugin.init(
     sequelize,
     modelName: 'FavoritePlugin',
     timestamps: false,
-  },
+  }
 );
 
 export default FavoritePlugin;

@@ -61,7 +61,7 @@ Theme.init(
     sequelize,
     modelName: 'Theme',
     timestamps: false,
-  },
+  }
 );
 
 export default Theme;

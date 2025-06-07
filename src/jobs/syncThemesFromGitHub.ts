@@ -19,11 +19,9 @@ const fetchFolders = async (): Promise<string[]> => {
 
   try {
     const response = await axios.get<GitHubRepoContent[]>(
-      `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${path}`,
+      `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${path}`
     );
-    const folders = response.data
-      .filter((item) => item.type === 'dir')
-      .map((item) => item.name);
+    const folders = response.data.filter((item) => item.type === 'dir').map((item) => item.name);
 
     Logger.info('Fetched folders:', folders);
     return folders;
@@ -40,9 +38,7 @@ const fetchFolders = async (): Promise<string[]> => {
  *
  * @returns theme meta data from contents in meta json file
  */
-const fetchMetaJson = async (
-  themeName: string,
-): Promise<ThemeMetaData | null> => {
+const fetchMetaJson = async (themeName: string): Promise<ThemeMetaData | null> => {
   const url = `https://raw.githubusercontent.com/tjtanjin/react-chatbotify-themes/main/themes/${themeName}/meta.json`;
   try {
     const response = await axios.get<ThemeMetaData>(url);
@@ -74,9 +70,7 @@ const runSyncThemesFromGitHub = async () => {
     const themeJobIds = themeJobs.map((job) => job.dataValues.id);
 
     // delete themes no longer found on github, but exclude those in theme job
-    const themesToDelete = databaseThemeIds.filter(
-      (id) => !gitHubThemes.includes(id) && !themeJobIds.includes(id),
-    );
+    const themesToDelete = databaseThemeIds.filter((id) => !gitHubThemes.includes(id) && !themeJobIds.includes(id));
     if (themesToDelete.length > 0) {
       await Theme.destroy({
         where: {
@@ -87,9 +81,7 @@ const runSyncThemesFromGitHub = async () => {
     }
 
     // create new themes found on github, and update versioning table as well
-    const themesToCreate = gitHubThemes.filter(
-      (name) => !databaseThemeIds.includes(name),
-    );
+    const themesToCreate = gitHubThemes.filter((name) => !databaseThemeIds.includes(name));
     for (const themeId of themesToCreate) {
       const transaction = await sequelize.transaction();
       try {
@@ -101,7 +93,7 @@ const runSyncThemesFromGitHub = async () => {
               name: metaData.name,
               description: metaData.description,
             },
-            { transaction },
+            { transaction }
           );
 
           await ThemeVersion.create(
@@ -110,7 +102,7 @@ const runSyncThemesFromGitHub = async () => {
               version: metaData.version,
               createdAt: sequelize.literal('NOW()'),
             },
-            { transaction },
+            { transaction }
           );
 
           await transaction.commit();

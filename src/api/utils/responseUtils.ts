@@ -9,12 +9,7 @@ import { ApiResult } from '../interfaces/ApiResult';
  * @param data data to send in result
  * @param message message to send in result
  */
-const sendSuccessResponse = (
-  res: Response,
-  statusCode: number,
-  data: object,
-  message: string,
-) => {
+const sendSuccessResponse = (res: Response, statusCode: number, data: object, message: string) => {
   const result: ApiResult = {
     success: true,
     message: message,
@@ -31,12 +26,7 @@ const sendSuccessResponse = (
  * @param message message to send in result
  * @param errors error details if any
  */
-const sendErrorResponse = (
-  res: Response,
-  statusCode: number,
-  message: string,
-  errors?: string[],
-) => {
+const sendErrorResponse = (res: Response, statusCode: number, message: string, errors?: string[]) => {
   const response: ApiResult = {
     success: false,
     message: message,

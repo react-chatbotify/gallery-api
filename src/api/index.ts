@@ -36,10 +36,7 @@ setUpMinioBucket();
 
 const app = express();
 
-const allowedOrigins =
-  process.env.FRONTEND_WEBSITE_URLS?.split(',').map((origin) =>
-    origin.trim(),
-  ) || [];
+const allowedOrigins = process.env.FRONTEND_WEBSITE_URLS?.split(',').map((origin) => origin.trim()) || [];
 
 // handle cors with a dynamic origin function
 app.use(
@@ -58,7 +55,7 @@ app.use(
       }
     },
     credentials: true,
-  }),
+  })
 );
 app.use(bodyParser.json());
 
@@ -79,14 +76,11 @@ app.use(
       // in production, use "lax" as frontend and backend have the same root domain
       sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'none',
       // if not in production, leave domain as undefined
-      domain:
-        process.env.NODE_ENV === 'production'
-          ? process.env.COOKIE_DOMAIN
-          : undefined,
+      domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : undefined,
       // expire after 3 months (milliseconds)
       maxAge: 1000 * 60 * 60 * 60 * 24 * 30 * 3,
     },
-  }),
+  })
 );
 
 // handles csrf protection
@@ -132,7 +126,7 @@ if (process.env.NODE_ENV !== 'production') {
       swaggerUi.serveFiles(swaggerDocument, {
         swaggerOptions: { defaultModelsExpandDepth: -1 },
       }),
-      swaggerUi.setup(),
+      swaggerUi.setup()
     );
 
     Logger.info(`Swagger docs loaded.`);

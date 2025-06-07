@@ -21,7 +21,7 @@ const getPluginSearchFromCache = async (
   pageNum: number,
   pageSize: number,
   sortBy: string,
-  sortDirection: string,
+  sortDirection: string
 ): Promise<string[] | null> => {
   const searchKey = `${PLUGIN_SEARCH_CACHE_PREFIX}:${searchQuery}:${pageNum}:${pageSize}:${sortBy}:${sortDirection}`;
 
@@ -47,7 +47,7 @@ const savePluginSearchToCache = async (
   pageSize: number,
   sortBy: string,
   sortDirection: string,
-  plugins: PluginData[],
+  plugins: PluginData[]
 ) => {
   const searchKey = `${PLUGIN_SEARCH_CACHE_PREFIX}:${searchQuery}:${pageNum}:${pageSize}:${sortBy}:${sortDirection}`;
   const pluginIds = plugins.map((plugin) => plugin.id);
@@ -58,13 +58,11 @@ const savePluginSearchToCache = async (
  * Invalidates plugin search cache (all).
  */
 const invalidatePluginSearchCache = async () => {
-  redisEphemeralClient
-    .keys(`${process.env.PLUGIN_SEARCH_CACHE_PREFIX}:*`)
-    .then((keys) => {
-      keys.forEach(async (key) => {
-        await redisEphemeralClient.del(key);
-      });
+  redisEphemeralClient.keys(`${process.env.PLUGIN_SEARCH_CACHE_PREFIX}:*`).then((keys) => {
+    keys.forEach(async (key) => {
+      await redisEphemeralClient.del(key);
     });
+  });
 };
 
 /**
@@ -74,9 +72,7 @@ const invalidatePluginSearchCache = async () => {
  *
  * @returns an array of plugin data
  */
-const getPluginDataFromCache = async (
-  pluginIds: string[],
-): Promise<PluginData[]> => {
+const getPluginDataFromCache = async (pluginIds: string[]): Promise<PluginData[]> => {
   if (pluginIds.length === 0) {
     return [];
   }
@@ -92,10 +88,7 @@ const getPluginDataFromCache = async (
     }
   });
 
-  const freshData =
-    missingPluginIds.length > 0
-      ? await getPluginsDataByIdsFromDb(missingPluginIds)
-      : [];
+  const freshData = missingPluginIds.length > 0 ? await getPluginsDataByIdsFromDb(missingPluginIds) : [];
   const freshDataMap = new Map(freshData.map((item) => [item.id, item]));
 
   // Replace null entries in rawPlugins with fresh data
@@ -138,9 +131,7 @@ const invalidatePluginDataCache = async (pluginId: string) => {
  *
  * @returns array of plugin versions for given plugin
  */
-const getPluginVersionsFromCache = async (
-  pluginId: string,
-): Promise<PluginVersionData[] | null> => {
+const getPluginVersionsFromCache = async (pluginId: string): Promise<PluginVersionData[] | null> => {
   const versionsKey = `${PLUGIN_VERSIONS_CACHE_PREFIX}:${pluginId}`;
   const versions = await redisEphemeralClient.get(versionsKey);
   if (versions === null) {
@@ -156,10 +147,7 @@ const getPluginVersionsFromCache = async (
  * @param themeId id of plugin to save versions for
  * @param versions versions to save
  */
-const savePluginVersionsToCache = async (
-  pluginId: string,
-  versions: PluginVersionData[],
-) => {
+const savePluginVersionsToCache = async (pluginId: string, versions: PluginVersionData[]) => {
   const versionsKey = `${PLUGIN_VERSIONS_CACHE_PREFIX}:${pluginId}`;
   redisEphemeralClient.set(versionsKey, JSON.stringify(versions), { EX: 1800 });
 };

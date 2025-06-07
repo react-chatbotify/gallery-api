@@ -21,11 +21,7 @@ const csrfMiddleware: RequestHandler = (req, res, next) => {
 
   // On state-changing methods, verify incoming token
   const sent = req.get('X-CSRF-Token') || req.body._csrf;
-  if (
-    req.session.csrfToken &&
-    typeof sent === 'string' &&
-    tokens.verify(req.session.csrfToken, sent)
-  ) {
+  if (req.session.csrfToken && typeof sent === 'string' && tokens.verify(req.session.csrfToken, sent)) {
     return next();
   }
 

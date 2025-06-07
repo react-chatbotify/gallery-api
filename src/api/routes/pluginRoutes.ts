@@ -39,11 +39,7 @@ const router = express.Router();
 
 // retrieves plugins (handles both auth and no auth)
 router.get('/', async (req, res) => {
-  const userData = await getUserData(
-    req.sessionID,
-    req.session.userId || null,
-    req.session.provider as string,
-  );
+  const userData = await getUserData(req.sessionID, req.session.userId || null, req.session.provider as string);
   if (userData) {
     req.userData = userData;
     getPlugins(req, res);
@@ -54,11 +50,7 @@ router.get('/', async (req, res) => {
 
 // retrieves data for a specific plugin
 router.get('/:plugin_id', async (req, res) => {
-  const userData = await getUserData(
-    req.sessionID,
-    req.session.userId || null,
-    req.session.provider as string,
-  );
+  const userData = await getUserData(req.sessionID, req.session.userId || null, req.session.provider as string);
   if (userData) {
     req.userData = userData;
   }
@@ -69,12 +61,7 @@ router.get('/:plugin_id', async (req, res) => {
 router.get('/versions', getPluginVersions);
 
 // publish plugin
-router.post(
-  '/publish',
-  checkUserSession,
-  upload.fields([{ name: 'imgUrl', maxCount: 1 }]),
-  publishPlugin,
-);
+router.post('/publish', checkUserSession, upload.fields([{ name: 'imgUrl', maxCount: 1 }]), publishPlugin);
 
 // unpublish plugin
 router.delete('/unpublish', checkUserSession, unpublishPlugin);

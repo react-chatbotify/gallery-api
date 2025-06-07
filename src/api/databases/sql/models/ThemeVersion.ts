@@ -43,7 +43,7 @@ ThemeVersion.init(
     sequelize,
     modelName: 'ThemeVersion',
     timestamps: false,
-  },
+  }
 );
 
 ThemeVersion.belongsTo(Theme, { foreignKey: 'themeId' });

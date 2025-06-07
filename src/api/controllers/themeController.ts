@@ -15,10 +15,7 @@ import {
   getThemeDataFromDb,
   getThemeVersionsFromDb,
 } from '../services/themes/dbService';
-import {
-  getUserFavoriteThemesFromCache,
-  saveUserFavoriteThemesToCache,
-} from '../services/users/cacheService';
+import { getUserFavoriteThemesFromCache, saveUserFavoriteThemesToCache } from '../services/users/cacheService';
 import { getUserFavoriteThemesFromDb } from '../services/users/dbService';
 import { sendErrorResponse, sendSuccessResponse } from '../utils/responseUtils';
 import { Theme } from '../databases/sql/models';
@@ -44,31 +41,12 @@ const getThemesNoAuth = async (req: Request, res: Response) => {
   try {
     // check if cache contains results and return if so
     let themes;
-    const searchResult = await getThemeSearchFromCache(
-      searchQuery,
-      pageNum,
-      pageSize,
-      sortBy,
-      sortDirection,
-    );
+    const searchResult = await getThemeSearchFromCache(searchQuery, pageNum, pageSize, sortBy, sortDirection);
     if (searchResult) {
       themes = await getThemeDataFromCache(searchResult);
     } else {
-      themes = await getThemeDataFromDb(
-        searchQuery,
-        pageNum,
-        pageSize,
-        sortBy,
-        sortDirection,
-      );
-      saveThemeSearchToCache(
-        searchQuery,
-        pageNum,
-        pageSize,
-        sortBy,
-        sortDirection,
-        themes,
-      );
+      themes = await getThemeDataFromDb(searchQuery, pageNum, pageSize, sortBy, sortDirection);
+      saveThemeSearchToCache(searchQuery, pageNum, pageSize, sortBy, sortDirection, themes);
       saveThemeDataToCache(themes);
     }
 
@@ -105,31 +83,12 @@ const getThemes = async (req: Request, res: Response) => {
   try {
     // check if cache contains results and return if so ; otherwise fetch from db
     let themes;
-    const searchResult = await getThemeSearchFromCache(
-      searchQuery,
-      pageNum,
-      pageSize,
-      sortBy,
-      sortDirection,
-    );
+    const searchResult = await getThemeSearchFromCache(searchQuery, pageNum, pageSize, sortBy, sortDirection);
     if (searchResult) {
       themes = await getThemeDataFromCache(searchResult);
     } else {
-      themes = await getThemeDataFromDb(
-        searchQuery,
-        pageNum,
-        pageSize,
-        sortBy,
-        sortDirection,
-      );
-      saveThemeSearchToCache(
-        searchQuery,
-        pageNum,
-        pageSize,
-        sortBy,
-        sortDirection,
-        themes,
-      );
+      themes = await getThemeDataFromDb(searchQuery, pageNum, pageSize, sortBy, sortDirection);
+      saveThemeSearchToCache(searchQuery, pageNum, pageSize, sortBy, sortDirection, themes);
       saveThemeDataToCache(themes);
     }
 
@@ -147,12 +106,7 @@ const getThemes = async (req: Request, res: Response) => {
       isFavorite: userFavoriteIds.has(theme.id),
     }));
 
-    sendSuccessResponse(
-      res,
-      200,
-      themesWithFavorites,
-      'Themes fetched successfully.',
-    );
+    sendSuccessResponse(res, 200, themesWithFavorites, 'Themes fetched successfully.');
   } catch (error) {
     Logger.error('Error fetching themes with favorites:', error);
     sendErrorResponse(res, 500, 'Failed to fetch themes.');
@@ -192,12 +146,7 @@ const getThemeById = async (req: Request, res: Response) => {
       themeData.isFavorite = userFavoriteIds.has(themeId);
     }
 
-    sendSuccessResponse(
-      res,
-      200,
-      themeData,
-      'Theme data fetched successfully.',
-    );
+    sendSuccessResponse(res, 200, themeData, 'Theme data fetched successfully.');
   } catch (error) {
     Logger.error(`Error fetching theme with id ${req.params.theme_id}:`, error);
     sendErrorResponse(res, 500, 'Failed to fetch theme data.');
@@ -222,12 +171,7 @@ const getThemeVersions = async (req: Request, res: Response) => {
       saveThemeVersionsToCache(themeId, versions);
     }
 
-    sendSuccessResponse(
-      res,
-      200,
-      versions,
-      'Theme versions fetched successfully.',
-    );
+    sendSuccessResponse(res, 200, versions, 'Theme versions fetched successfully.');
   } catch (error) {
     Logger.error('Error fetching theme versions:', error);
     sendErrorResponse(res, 500, 'Failed to fetch theme versions.');
@@ -258,35 +202,19 @@ const publishTheme = async (req: Request, res: Response) => {
   const validationPassed = true;
   if (!validationPassed) {
     // todo: populate array with validation error details in future
-    return sendErrorResponse(
-      res,
-      400,
-      'Failed to publish theme, validation failed.',
-      [],
-    );
+    return sendErrorResponse(res, 400, 'Failed to publish theme, validation failed.', []);
   }
 
   // add the new creation to theme job queue for processing later
   try {
     // todo: before adding job to db, should check if there are existing jobs to avoid multiple jobs in the queue
     // todo: frontend should have a status interface to show pending jobs (so that users can delete etc)
-    const themeJobQueueEntry = await addThemeJobToDb(
-      themeId,
-      userData.id,
-      name,
-      description,
-      version,
-    );
+    const themeJobQueueEntry = await addThemeJobToDb(themeId, userData.id, name, description, version);
     // todo: increment version count
     // todo: push files into minio bucket with themeId for process queue job to pick up and push to github
     // todo: consume job queue
 
-    sendSuccessResponse(
-      res,
-      201,
-      themeJobQueueEntry,
-      'Themed queued for publishing.',
-    );
+    sendSuccessResponse(res, 201, themeJobQueueEntry, 'Themed queued for publishing.');
   } catch (error) {
     Logger.error('Error publishing theme:', error);
     sendErrorResponse(res, 500, 'Failed to publish theme, please try again.');
@@ -319,11 +247,7 @@ const unpublishTheme = async (req: Request, res: Response) => {
 
     // if theme does not exist, cannot delete
     if (!theme) {
-      return sendErrorResponse(
-        res,
-        404,
-        'Failed to unpublish theme, the theme does not exist.',
-      );
+      return sendErrorResponse(res, 404, 'Failed to unpublish theme, the theme does not exist.');
     }
 
     await deleteThemeDataFromDb(themeId);
@@ -337,11 +261,4 @@ const unpublishTheme = async (req: Request, res: Response) => {
   }
 };
 
-export {
-  getThemes,
-  getThemesNoAuth,
-  getThemeById,
-  getThemeVersions,
-  publishTheme,
-  unpublishTheme,
-};
+export { getThemes, getThemesNoAuth, getThemeById, getThemeVersions, publishTheme, unpublishTheme };

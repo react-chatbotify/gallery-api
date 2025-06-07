@@ -38,8 +38,7 @@ const getUserTokensWithCode = async (key: string) => {
       accessToken: response.data.access_token,
       accessTokenExpiry: Date.now() + response.data.expires_in * 1000 - 900,
       refreshToken: response.data.refresh_token,
-      refreshTokenExpiry:
-        Date.now() + response.data.refresh_token_expires_in * 1000 - 900,
+      refreshTokenExpiry: Date.now() + response.data.refresh_token_expires_in * 1000 - 900,
     };
     return tokenResponse;
   } catch (error) {
@@ -80,8 +79,7 @@ const getUserTokensWithRefresh = async (refreshToken: string) => {
       accessToken: response.data.access_token,
       accessTokenExpiry: Date.now() + response.data.expires_in * 1000 - 900,
       refreshToken: response.data.refresh_token,
-      refreshTokenExpiry:
-        Date.now() + response.data.refresh_token_expires_in * 1000 - 900,
+      refreshTokenExpiry: Date.now() + response.data.refresh_token_expires_in * 1000 - 900,
     };
     return tokenResponse;
   } catch (error) {
@@ -97,9 +95,7 @@ const getUserTokensWithRefresh = async (refreshToken: string) => {
  *
  * @returns user data from github
  */
-const getUserData = async (
-  accessToken: string,
-): Promise<UserProviderData | null> => {
+const getUserData = async (accessToken: string): Promise<UserProviderData | null> => {
   try {
     const userResponse = await axios({
       method: 'get',
@@ -129,8 +125,7 @@ const getUserData = async (
       }
 
       const result = emailResponse.data.find(
-        (email: { email: string; verified: boolean; primary: boolean }) =>
-          email.primary === true,
+        (email: { email: string; verified: boolean; primary: boolean }) => email.primary === true
       );
 
       data.email = result.email;

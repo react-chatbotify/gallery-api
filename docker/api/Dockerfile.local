@@ -17,4 +17,4 @@ RUN npm install
 COPY nodemon-api.json ./
 
 # Command to run the application with nodemon for development
-CMD ["npm", "run", "dev:watch-api"]
+CMD ["npm", "run", "start:watch-api"]

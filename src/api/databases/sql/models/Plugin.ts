@@ -64,7 +64,7 @@ Plugin.init(
     sequelize,
     modelName: 'Plugin',
     timestamps: false,
-  },
+  }
 );
 
 export default Plugin;

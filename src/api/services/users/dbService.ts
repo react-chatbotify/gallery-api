@@ -1,25 +1,11 @@
-import {
-  FavoritePlugin,
-  FavoriteTheme,
-  Plugin,
-  Theme,
-} from '../../databases/sql/models';
+import { FavoritePlugin, FavoriteTheme, Plugin, Theme } from '../../databases/sql/models';
 import { sequelize } from '../../databases/sql/sql';
 import { PluginData } from '../../interfaces/plugins/PluginData';
 import { ThemeData } from '../../interfaces/themes/ThemeData';
 import Logger from '../../logger';
-import {
-  invalidatePluginDataCache,
-  invalidatePluginSearchCache,
-} from '../plugins/cacheService';
-import {
-  invalidateThemeDataCache,
-  invalidateThemeSearchCache,
-} from '../themes/cacheService';
-import {
-  invalidateUserFavoritePluginsCache,
-  invalidateUserFavoriteThemesCache,
-} from './cacheService';
+import { invalidatePluginDataCache, invalidatePluginSearchCache } from '../plugins/cacheService';
+import { invalidateThemeDataCache, invalidateThemeSearchCache } from '../themes/cacheService';
+import { invalidateUserFavoritePluginsCache, invalidateUserFavoriteThemesCache } from './cacheService';
 
 /**
  * Retrieves user favorite themes from database.
@@ -28,9 +14,7 @@ import {
  *
  * @returns array of user favorite themes
  */
-const getUserFavoriteThemesFromDb = async (
-  userId: string,
-): Promise<ThemeData[]> => {
+const getUserFavoriteThemesFromDb = async (userId: string): Promise<ThemeData[]> => {
   const userFavorites = (await FavoriteTheme.findAll({
     where: { userId },
     include: [
@@ -79,7 +63,7 @@ const addUserFavoriteThemeToDb = async (userId: string, themeId: string) => {
         userId: userId,
         themeId: themeId,
       },
-      { transaction },
+      { transaction }
     );
 
     // invalidate cache asynchronously
@@ -107,10 +91,7 @@ const addUserFavoriteThemeToDb = async (userId: string, themeId: string) => {
  * @param userId id of user to unfavorite theme
  * @param themeId id of theme unfavorited
  */
-const removeUserFavoriteThemeFromDb = async (
-  userId: string,
-  themeId: string,
-) => {
+const removeUserFavoriteThemeFromDb = async (userId: string, themeId: string) => {
   await sequelize.transaction(async (transaction) => {
     // check if theme is favorited
     const existingFavorite = await FavoriteTheme.findOne({
@@ -157,9 +138,7 @@ const removeUserFavoriteThemeFromDb = async (
  *
  * @returns array of ids representing user-owned themes
  */
-const getUserOwnedThemesFromDb = async (
-  userId: string,
-): Promise<ThemeData[]> => {
+const getUserOwnedThemesFromDb = async (userId: string): Promise<ThemeData[]> => {
   const userOwnedThemes = (await Theme.findAll({
     where: { userId },
     raw: true,
@@ -175,9 +154,7 @@ const getUserOwnedThemesFromDb = async (
  *
  * @returns array of user favorite plugins
  */
-const getUserFavoritePluginsFromDb = async (
-  userId: string,
-): Promise<PluginData[]> => {
+const getUserFavoritePluginsFromDb = async (userId: string): Promise<PluginData[]> => {
   const userFavorites = (await FavoritePlugin.findAll({
     where: { userId },
     include: [
@@ -226,7 +203,7 @@ const addUserFavoritePluginToDb = async (userId: string, pluginId: string) => {
         userId: userId,
         pluginId: pluginId,
       },
-      { transaction },
+      { transaction }
     );
 
     // invalidate cache asynchronously
@@ -254,10 +231,7 @@ const addUserFavoritePluginToDb = async (userId: string, pluginId: string) => {
  * @param userId id of user to unfavorite plugin
  * @param pluginId id of plugin unfavorited
  */
-const removeUserFavoritePluginFromDb = async (
-  userId: string,
-  pluginId: string,
-) => {
+const removeUserFavoritePluginFromDb = async (userId: string, pluginId: string) => {
   await sequelize.transaction(async (transaction) => {
     // check if plugin is favorited
     const existingFavorite = await FavoritePlugin.findOne({
@@ -304,9 +278,7 @@ const removeUserFavoritePluginFromDb = async (
  *
  * @returns array of ids representing user-owned plugins
  */
-const getUserOwnedPluginsFromDb = async (
-  userId: string,
-): Promise<PluginData[]> => {
+const getUserOwnedPluginsFromDb = async (userId: string): Promise<PluginData[]> => {
   const userOwnedPlugins = (await Plugin.findAll({
     where: { userId },
     raw: true,

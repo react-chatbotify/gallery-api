@@ -17,9 +17,7 @@ const initializeDatabase = async () => {
   try {
     // connect to the database
     await sequelize.authenticate();
-    Logger.info(
-      'Connection to the database has been established successfully.',
-    );
+    Logger.info('Connection to the database has been established successfully.');
 
     // a primary instance is assigned to alter tables if necessary in development/playground
     // not ideal, but works and good enough for now

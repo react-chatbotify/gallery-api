@@ -46,7 +46,7 @@ ThemeJobQueue.init(
     sequelize,
     modelName: 'ThemeJobQueue',
     timestamps: false,
-  },
+  }
 );
 
 export default ThemeJobQueue;

@@ -39,7 +39,7 @@ UserRefreshToken.init(
     sequelize,
     modelName: 'UserRefreshToken',
     timestamps: false,
-  },
+  }
 );
 
 export default UserRefreshToken;

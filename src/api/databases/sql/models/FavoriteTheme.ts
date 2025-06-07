@@ -36,7 +36,7 @@ FavoriteTheme.init(
     sequelize,
     modelName: 'FavoriteTheme',
     timestamps: false,
-  },
+  }
 );
 
 export default FavoriteTheme;

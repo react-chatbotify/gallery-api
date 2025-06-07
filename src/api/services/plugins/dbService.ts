@@ -1,10 +1,6 @@
 import { Op } from 'sequelize';
 
-import {
-  invalidatePluginDataCache,
-  invalidatePluginSearchCache,
-  invalidatePluginVersionsCache,
-} from './cacheService';
+import { invalidatePluginDataCache, invalidatePluginSearchCache, invalidatePluginVersionsCache } from './cacheService';
 import { invalidateUserOwnedPluginsCache } from '../users/cacheService';
 import { Plugin } from '../../databases/sql/models';
 import { sequelize } from '../../databases/sql/sql';
@@ -18,9 +14,7 @@ import Logger from '../../logger';
  *
  * @returns array of plugin data
  */
-const getPluginsDataByIdsFromDb = async (
-  pluginIds: string[],
-): Promise<PluginData[]> => {
+const getPluginsDataByIdsFromDb = async (pluginIds: string[]): Promise<PluginData[]> => {
   if (!pluginIds || pluginIds.length === 0) {
     return [];
   }
@@ -51,17 +45,14 @@ const getPluginDataFromDb = async (
   pageNum: number,
   pageSize: number,
   sortBy: string = 'updatedAt',
-  sortDirection: 'ASC' | 'DESC' = 'DESC',
+  sortDirection: 'ASC' | 'DESC' = 'DESC'
 ): Promise<PluginData[]> => {
   // construct clause for searching plugins
   const limit = pageSize || 30;
   const offset = ((pageNum || 1) - 1) * limit;
   const whereClause = searchQuery
     ? {
-        [Op.or]: [
-          { name: { [Op.like]: `%${searchQuery}%` } },
-          { description: { [Op.like]: `%${searchQuery}%` } },
-        ],
+        [Op.or]: [{ name: { [Op.like]: `%${searchQuery}%` } }, { description: { [Op.like]: `%${searchQuery}%` } }],
       }
     : {};
 
@@ -97,7 +88,7 @@ const addPluginDataToDb = async (
   description: string,
   imageUrl: string,
   packageUrl: string,
-  userId: string,
+  userId: string
 ) => {
   const plugin = await Plugin.create({
     id: pluginId,
@@ -161,9 +152,4 @@ const deletePluginDataFromDb = async (pluginId: string) => {
   });
 };
 
-export {
-  getPluginsDataByIdsFromDb,
-  getPluginDataFromDb,
-  addPluginDataToDb,
-  deletePluginDataFromDb,
-};
+export { getPluginsDataByIdsFromDb, getPluginDataFromDb, addPluginDataToDb, deletePluginDataFromDb };

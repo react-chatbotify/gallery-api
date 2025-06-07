@@ -11,23 +11,15 @@ import {
   savePluginSearchToCache,
   savePluginVersionsToCache,
 } from '../services/plugins/cacheService';
-import {
-  addPluginDataToDb,
-  deletePluginDataFromDb,
-  getPluginDataFromDb,
-} from '../services/plugins/dbService';
+import { addPluginDataToDb, deletePluginDataFromDb, getPluginDataFromDb } from '../services/plugins/dbService';
 import { getPluginVersionsFromNpm } from '../services/plugins/npmService';
-import {
-  getUserFavoritePluginsFromCache,
-  saveUserFavoritePluginsToCache,
-} from '../services/users/cacheService';
+import { getUserFavoritePluginsFromCache, saveUserFavoritePluginsToCache } from '../services/users/cacheService';
 import { getUserFavoritePluginsFromDb } from '../services/users/dbService';
 import { sendErrorResponse, sendSuccessResponse } from '../utils/responseUtils';
 import { Plugin } from '../databases/sql/models';
 import Logger from '../logger';
 
-const maxFileSize =
-  Number(process.env.MAX_PLUGIN_IMAGE_FILE_SIZE) || 1 * 1024 * 1024; // defaults to 1 MB if not set
+const maxFileSize = Number(process.env.MAX_PLUGIN_IMAGE_FILE_SIZE) || 1 * 1024 * 1024; // defaults to 1 MB if not set
 
 /**
  * Handles fetching of plugins when not logged in.
@@ -49,32 +41,13 @@ const getPluginsNoAuth = async (req: Request, res: Response) => {
   try {
     // check if cache contains results and return if so ; otherwise fetch from db
     let plugins;
-    const searchResult = await getPluginSearchFromCache(
-      searchQuery,
-      pageNum,
-      pageSize,
-      sortBy,
-      sortDirection,
-    );
+    const searchResult = await getPluginSearchFromCache(searchQuery, pageNum, pageSize, sortBy, sortDirection);
     if (searchResult) {
       plugins = await getPluginDataFromCache(searchResult);
     } else {
-      plugins = await getPluginDataFromDb(
-        searchQuery,
-        pageNum,
-        pageSize,
-        sortBy,
-        sortDirection,
-      );
-      savePluginSearchToCache(
-        searchQuery,
-        pageNum,
-        pageSize,
-        sortBy,
-        sortDirection,
-        plugins,
-      );
-      savePluginDataToCache(plugins);
+      plugins = await getPluginDataFromDb(searchQuery, pageNum, pageSize, sortBy, sortDirection);
+      void savePluginSearchToCache(searchQuery, pageNum, pageSize, sortBy, sortDirection, plugins);
+      void savePluginDataToCache(plugins);
     }
 
     sendSuccessResponse(res, 200, plugins, 'Plugins fetched successfully.');
@@ -102,7 +75,7 @@ const getPlugins = async (req: Request, res: Response) => {
   const sortDirection = (req.query.sortDirection as 'ASC' | 'DESC') ?? 'DESC';
 
   // if no user id, assumed not logged in so handled by public endpoint (though router should have caught it!)
-  const userId = req.userData.id;
+  const userId: string = req.userData.id;
   if (!userId) {
     return getPluginsNoAuth(req, res);
   }
@@ -110,32 +83,13 @@ const getPlugins = async (req: Request, res: Response) => {
   try {
     // check if cache contains results and return if so ; otherwise fetch from db
     let plugins;
-    const searchResult = await getPluginSearchFromCache(
-      searchQuery,
-      pageNum,
-      pageSize,
-      sortBy,
-      sortDirection,
-    );
+    const searchResult = await getPluginSearchFromCache(searchQuery, pageNum, pageSize, sortBy, sortDirection);
     if (searchResult) {
       plugins = await getPluginDataFromCache(searchResult);
     } else {
-      plugins = await getPluginDataFromDb(
-        searchQuery,
-        pageNum,
-        pageSize,
-        sortBy,
-        sortDirection,
-      );
-      savePluginSearchToCache(
-        searchQuery,
-        pageNum,
-        pageSize,
-        sortBy,
-        sortDirection,
-        plugins,
-      );
-      savePluginDataToCache(plugins);
+      plugins = await getPluginDataFromDb(searchQuery, pageNum, pageSize, sortBy, sortDirection);
+      void savePluginSearchToCache(searchQuery, pageNum, pageSize, sortBy, sortDirection, plugins);
+      void savePluginDataToCache(plugins);
     }
 
     // check if cache contains user favorites and return if so ; otherwise fetch from db
@@ -152,12 +106,7 @@ const getPlugins = async (req: Request, res: Response) => {
       isFavorite: userFavoriteIds.has(plugin.id),
     }));
 
-    sendSuccessResponse(
-      res,
-      200,
-      pluginsWithFavorites,
-      'Plugins fetched successfully.',
-    );
+    sendSuccessResponse(res, 200, pluginsWithFavorites, 'Plugins fetched successfully.');
   } catch (error) {
     Logger.error('Error fetching plugins with favorites:', error);
     sendErrorResponse(res, 500, 'Failed to fetch plugins.');
@@ -181,37 +130,25 @@ const getPluginById = async (req: Request, res: Response) => {
 
     // check if plugin is found
     if (!result) {
-      return sendErrorResponse(
-        res,
-        404,
-        `The plugin ${pluginId} was not found.`,
-      );
+      return sendErrorResponse(res, 404, `The plugin ${pluginId} was not found.`);
     }
 
     const pluginData = result[0];
 
     if (req.userData) {
-      const userId = req.userData.id;
+      const userId: string = req.userData.id;
       let userFavorites = await getUserFavoritePluginsFromCache(userId);
       if (userFavorites === null) {
         userFavorites = await getUserFavoritePluginsFromDb(userId);
-        saveUserFavoritePluginsToCache(userId, userFavorites);
+        void saveUserFavoritePluginsToCache(userId, userFavorites);
       }
       const userFavoriteIds = new Set(userFavorites.map((item) => item.id));
       pluginData.isFavorite = userFavoriteIds.has(pluginId);
     }
 
-    sendSuccessResponse(
-      res,
-      200,
-      pluginData,
-      'Plugin data fetched successfully.',
-    );
+    sendSuccessResponse(res, 200, pluginData, 'Plugin data fetched successfully.');
   } catch (error) {
-    Logger.error(
-      `Error fetching plugin with id ${req.params.plugin_id}:`,
-      error,
-    );
+    Logger.error(`Error fetching plugin with id ${req.params.plugin_id}:`, error);
     sendErrorResponse(res, 500, 'Failed to fetch plugin data.');
   }
 };
@@ -231,15 +168,10 @@ const getPluginVersions = async (req: Request, res: Response) => {
     let versions = await getPluginVersionsFromCache(pluginId);
     if (versions === null) {
       versions = await getPluginVersionsFromNpm(pluginId);
-      savePluginVersionsToCache(pluginId, versions);
+      void savePluginVersionsToCache(pluginId, versions);
     }
 
-    sendSuccessResponse(
-      res,
-      200,
-      versions,
-      'Plugin versions fetched successfully.',
-    );
+    sendSuccessResponse(res, 200, versions, 'Plugin versions fetched successfully.');
   } catch (error) {
     Logger.error('Error fetching plugin versions:', error);
     sendErrorResponse(res, 500, 'Failed to fetch plugin versions.');
@@ -259,35 +191,21 @@ const publishPlugin = async (req: Request, res: Response) => {
 
   // plugin information provided by the user
   const { pluginId, name, description, packageUrl } = req.body;
-  const imgFile = (req.files as { [fieldname: string]: Express.Multer.File[] })[
-    'imgUrl'
-  ][0];
+  const imgFile = (req.files as { [fieldname: string]: Express.Multer.File[] })['imgUrl'][0];
 
   if (imgFile.size > maxFileSize) {
-    return sendErrorResponse(
-      res,
-      400,
-      'Plugin image file size exceeds the 1 MB limit.',
-    );
+    return sendErrorResponse(res, 400, 'Plugin image file size exceeds the 1 MB limit.');
   }
 
   const [fileName, extension] = imgFile.originalname.split('.');
-  const imgName =
-    fileName + crypto.randomBytes(20).toString('hex') + '.' + extension;
+  const imgName = fileName + crypto.randomBytes(20).toString('hex') + '.' + extension;
 
   try {
     // todo: verify if image upload works
     // save images to minio and generate image url for plugin before saving to db
     await uploadBuffer('plugins-images', imgName, imgFile.buffer);
     const imageUrl = `${MINIO_URL}/plugins-images/${imgName}`;
-    const plugin = await addPluginDataToDb(
-      pluginId,
-      name,
-      description,
-      imageUrl,
-      packageUrl,
-      userData.id,
-    );
+    const plugin = await addPluginDataToDb(pluginId, name, description, imageUrl, packageUrl, userData.id);
     sendSuccessResponse(res, 200, plugin, 'Plugin published successfully.');
   } catch (error) {
     Logger.error('Error publishing plugin.', error);
@@ -321,11 +239,7 @@ const unpublishPlugin = async (req: Request, res: Response) => {
 
     // if plugin does not exist, cannot delete
     if (!plugin) {
-      return sendErrorResponse(
-        res,
-        404,
-        'Failed to unpulish plugin, the plugin does not exist.',
-      );
+      return sendErrorResponse(res, 404, 'Failed to unpulish plugin, the plugin does not exist.');
     }
 
     await deletePluginDataFromDb(pluginId);
@@ -333,19 +247,8 @@ const unpublishPlugin = async (req: Request, res: Response) => {
     sendSuccessResponse(res, 200, plugin, 'Plugin unpublished successfully.');
   } catch (error) {
     Logger.error('Error unpublishing plugin.', error);
-    sendErrorResponse(
-      res,
-      500,
-      'Failed to unpublish plugin, please try again.',
-    );
+    sendErrorResponse(res, 500, 'Failed to unpublish plugin, please try again.');
   }
 };
 
-export {
-  getPlugins,
-  getPluginsNoAuth,
-  getPluginById,
-  getPluginVersions,
-  publishPlugin,
-  unpublishPlugin,
-};
+export { getPlugins, getPluginsNoAuth, getPluginById, getPluginVersions, publishPlugin, unpublishPlugin };

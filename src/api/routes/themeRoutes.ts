@@ -40,11 +40,7 @@ const router = express.Router();
 
 // retrieves themes (handles both auth and no auth)
 router.get('/', async (req, res) => {
-  const userData = await getUserData(
-    req.sessionID,
-    req.session.userId || null,
-    req.session.provider as string,
-  );
+  const userData = await getUserData(req.sessionID, req.session.userId || null, req.session.provider as string);
   if (userData) {
     req.userData = userData;
     getThemes(req, res);
@@ -55,11 +51,7 @@ router.get('/', async (req, res) => {
 
 // retrieves data for a specific theme
 router.get('/:theme_id', async (req, res) => {
-  const userData = await getUserData(
-    req.sessionID,
-    req.session.userId || null,
-    req.session.provider as string,
-  );
+  const userData = await getUserData(req.sessionID, req.session.userId || null, req.session.provider as string);
   if (userData) {
     req.userData = userData;
   }
@@ -78,7 +70,7 @@ router.post(
     { name: 'options', maxCount: 1 },
     { name: 'display', maxCount: 1 },
   ]),
-  publishTheme,
+  publishTheme
 );
 
 // unpublish theme

@@ -2,18 +2,14 @@ import axios from 'axios';
 
 import { PluginVersionData } from '../../interfaces/plugins/PluginVersionData';
 
-const getPluginVersionsFromNpm = async (
-  pluginId: string,
-): Promise<PluginVersionData[]> => {
+const getPluginVersionsFromNpm = async (pluginId: string): Promise<PluginVersionData[]> => {
   // check if plugin is valid
   if (!pluginId || typeof pluginId !== 'string') {
     throw new Error('Invalid plugin ID provided');
   }
 
   // fetch package data from npm registry
-  const response = await axios.get(
-    `https://registry.npmjs.org/${encodeURIComponent(pluginId)}`,
-  );
+  const response = await axios.get(`https://registry.npmjs.org/${encodeURIComponent(pluginId)}`);
 
   // validate data
   if (!response.data || !response.data.versions || !response.data.time) {

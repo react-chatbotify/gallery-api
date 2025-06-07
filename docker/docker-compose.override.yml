@@ -2,7 +2,7 @@
 services:
   api1:
     # for hot reloading in local dev
-    command: npm run dev:watch-api
+    command: npm run start:watch-api
     # codebase mounted for local dev
     volumes:
       - ..:/app
@@ -10,7 +10,7 @@ services:
 
   api2:
     # for hot reloading in local dev
-    command: npm run dev:watch-api
+    command: npm run start:watch-api
     # codebase mounted for local dev
     volumes:
       - ..:/app
@@ -18,7 +18,7 @@ services:
 
   jobs:
     # for hot reloading in local dev
-    command: npm run dev:watch-jobs
+    command: npm run start:watch-jobs
     # codebase mounted for local dev
     volumes:
       - ..:/app

@@ -58,11 +58,7 @@ const createBucketIfNotExists = async (bucketName: string): Promise<void> => {
  * @param objectName name of file
  * @param filePath path to file
  */
-const uploadFile = async (
-  bucketName: string,
-  objectName: string,
-  filePath: string,
-): Promise<void> => {
+const uploadFile = async (bucketName: string, objectName: string, filePath: string): Promise<void> => {
   try {
     await minioClient.fPutObject(bucketName, objectName, filePath);
     Logger.info(`File ${objectName} uploaded successfully.`);
@@ -79,11 +75,7 @@ const uploadFile = async (
  * @param objectName name of file
  * @param buffer Buffer
  */
-const uploadBuffer = async (
-  bucketName: string,
-  objectName: string,
-  buffer: Buffer,
-): Promise<void> => {
+const uploadBuffer = async (bucketName: string, objectName: string, buffer: Buffer): Promise<void> => {
   try {
     await minioClient.putObject(bucketName, objectName, buffer);
     Logger.info(`File ${objectName} uploaded successfully.`);
@@ -101,16 +93,9 @@ const uploadBuffer = async (
  *
  * @returns file if found, null otherwise
  */
-const getFile = async (
-  bucketName: string,
-  objectName: string,
-): Promise<BucketItem | null> => {
+const getFile = async (bucketName: string, objectName: string): Promise<BucketItem | null> => {
   try {
-    const objectsStream = minioClient.listObjectsV2(
-      bucketName,
-      objectName,
-      true,
-    );
+    const objectsStream = minioClient.listObjectsV2(bucketName, objectName, true);
     for await (const obj of objectsStream) {
       if (obj.name === objectName) {
         return obj;
@@ -130,10 +115,7 @@ const getFile = async (
  * @param bucketName name of bucket
  * @param objectName name of file
  */
-const deleteFile = async (
-  bucketName: string,
-  objectName: string,
-): Promise<void> => {
+const deleteFile = async (bucketName: string, objectName: string): Promise<void> => {
   try {
     await minioClient.removeObject(bucketName, objectName);
     Logger.info(`File ${objectName} deleted successfully.`);
@@ -150,25 +132,9 @@ const deleteFile = async (
  * @param objectName name of file
  * @param expiryDate? optional expiration date
  */
-const createPresignedURL = (
-  bucketName: string,
-  objectName: string,
-  expiryDate?: number,
-) => {
-  const url = minioClient.presignedUrl(
-    'GET',
-    bucketName,
-    objectName,
-    expiryDate,
-  );
+const createPresignedURL = (bucketName: string, objectName: string, expiryDate?: number) => {
+  const url = minioClient.presignedUrl('GET', bucketName, objectName, expiryDate);
   return url;
 };
 
-export {
-  deleteFile,
-  getFile,
-  setUpMinioBucket,
-  uploadFile,
-  uploadBuffer,
-  createPresignedURL,
-};
+export { deleteFile, getFile, setUpMinioBucket, uploadFile, uploadBuffer, createPresignedURL };

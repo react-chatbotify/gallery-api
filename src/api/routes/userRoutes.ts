@@ -44,11 +44,7 @@ router.post('/plugins/favorited', checkUserSession, addUserFavoritePlugin);
 router.delete('/plugins/favorited', checkUserSession, removeUserFavoritePlugin);
 
 // agree/disagree to user author agreement
-router.post(
-  '/author-agreement',
-  checkUserSession,
-  setUserAcceptAuthorAgreement,
-);
+router.post('/author-agreement', checkUserSession, setUserAcceptAuthorAgreement);
 
 // todo: add an endpoint for users to attempt to claim theme ownership
 // required if a theme is on github but the author has never logged

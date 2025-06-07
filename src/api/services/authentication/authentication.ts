@@ -20,11 +20,7 @@ import Logger from '../../logger';
  *
  * @returns token response if successful, null otherwise
  */
-const fetchTokensWithCode = async (
-  sessionId: string,
-  key: string,
-  provider: string,
-): Promise<TokenResponse | null> => {
+const fetchTokensWithCode = async (sessionId: string, key: string, provider: string): Promise<TokenResponse | null> => {
   let tokenResponse = null;
   if (provider === process.env.GITHUB_LOGIN_PROVIDER) {
     tokenResponse = await GitHubProvider.getUserTokensWithCode(key);
@@ -40,7 +36,7 @@ const fetchTokensWithCode = async (
     await redisEphemeralClient.set(
       `${process.env.USER_TOKEN_PREFIX as string}:${sessionId}`,
       encrypt(tokenResponse.accessToken),
-      { EX: 27900 },
+      { EX: 27900 }
     );
   } catch (error) {}
 
@@ -56,16 +52,10 @@ const fetchTokensWithCode = async (
  *
  * @returns session data of user if successfully retrieved, null otherwise
  */
-const getUserData = async (
-  sessionId: string,
-  userId: string | null,
-  provider: string,
-): Promise<UserData | null> => {
+const getUserData = async (sessionId: string, userId: string | null, provider: string): Promise<UserData | null> => {
   // if user data is still in cache, parse and return
   try {
-    const cachedUserData = await redisEphemeralClient.get(
-      `${process.env.USER_DATA_PREFIX}:${sessionId}`,
-    );
+    const cachedUserData = await redisEphemeralClient.get(`${process.env.USER_DATA_PREFIX}:${sessionId}`);
     if (cachedUserData) {
       return JSON.parse(cachedUserData);
     }
@@ -80,16 +70,9 @@ const getUserData = async (
 
   // if user data not in cache, then try to fetch data from the provider with access token
   try {
-    const encryptedToken = await redisEphemeralClient.get(
-      `${process.env.USER_TOKEN_PREFIX as string}:${sessionId}`,
-    );
+    const encryptedToken = await redisEphemeralClient.get(`${process.env.USER_TOKEN_PREFIX as string}:${sessionId}`);
     const accessToken = encryptedToken ? decrypt(encryptedToken) : null;
-    const userProviderData = await getUserProviderDataFromProvider(
-      sessionId,
-      userId,
-      accessToken,
-      provider,
-    );
+    const userProviderData = await getUserProviderDataFromProvider(sessionId, userId, accessToken, provider);
     if (userProviderData) {
       // get user data, will create user if user does not exist
       const user = await getOrCreateUser(userProviderData);
@@ -108,7 +91,7 @@ const getUserData = async (
       await redisEphemeralClient.set(
         `${process.env.USER_DATA_PREFIX as string}:${sessionId}`,
         JSON.stringify(userData),
-        { EX: 900 },
+        { EX: 900 }
       );
 
       return userData;
@@ -126,9 +109,7 @@ const getUserData = async (
  *
  * @returns existing or newly created user
  */
-const getOrCreateUser = async (
-  userProviderData: UserProviderData,
-): Promise<User | null> => {
+const getOrCreateUser = async (userProviderData: UserProviderData): Promise<User | null> => {
   try {
     // check if the email exists in the User table
     const existingUser = await User.findOne({
@@ -185,17 +166,13 @@ const getOrCreateUser = async (
  *
  * @returns true if successfully saved, false otherwise
  */
-const saveUserTokens = async (
-  sessionId: string,
-  userId: string,
-  tokenResponse: TokenResponse,
-): Promise<boolean> => {
+const saveUserTokens = async (sessionId: string, userId: string, tokenResponse: TokenResponse): Promise<boolean> => {
   try {
     // save access token to Redis
     await redisEphemeralClient.set(
       `${process.env.USER_TOKEN_PREFIX as string}:${sessionId}`,
       encrypt(tokenResponse.accessToken),
-      { EX: 27900 },
+      { EX: 27900 }
     );
 
     // store refresh token into MySQL (upsert to overwrite userId exists)
@@ -230,14 +207,10 @@ const getUserProviderDataFromProvider = async (
   sessionId: string,
   userId: string | null,
   accessToken: string | null,
-  provider: string,
+  provider: string
 ) => {
   if (!accessToken) {
-    const tokenResponse = await refreshProviderTokens(
-      sessionId,
-      userId,
-      provider,
-    );
+    const tokenResponse = await refreshProviderTokens(sessionId, userId, provider);
     accessToken = tokenResponse ? tokenResponse.accessToken : null;
   }
 
@@ -262,11 +235,7 @@ const getUserProviderDataFromProvider = async (
  * @param provider provider that this session was created (logged in) with
  * @returns
  */
-const refreshProviderTokens = async (
-  sessionId: string,
-  userId: string | null,
-  provider: string,
-) => {
+const refreshProviderTokens = async (sessionId: string, userId: string | null, provider: string) => {
   // if no user id provided, cannot refresh
   if (!userId) {
     return;
@@ -289,8 +258,7 @@ const refreshProviderTokens = async (
     }
 
     // check token expiry and if expired, return null
-    const refreshTokenExpired =
-      new Date(refreshTokenRecord.dataValues.expiryDate) <= new Date();
+    const refreshTokenExpired = new Date(refreshTokenRecord.dataValues.expiryDate) <= new Date();
     if (refreshTokenExpired) {
       return null;
     }
@@ -302,8 +270,7 @@ const refreshProviderTokens = async (
     let tokenResponse = null;
     if (provider === process.env.GITHUB_LOGIN_PROVIDER) {
       // Assuming you have a function that uses the refresh token to get new tokens from GitHub
-      tokenResponse =
-        await GitHubProvider.getUserTokensWithRefresh(refreshToken);
+      tokenResponse = await GitHubProvider.getUserTokensWithRefresh(refreshToken);
     }
 
     // save user tokens if response is valid

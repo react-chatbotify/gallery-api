@@ -6,17 +6,10 @@ interface GetPlugins {
   offset: number;
   limit: number;
 }
-export async function getPluginsService({
-  searchQuery,
-  limit,
-  offset,
-}: GetPlugins) {
+export async function getPluginsService({ searchQuery, limit, offset }: GetPlugins) {
   const whereClause = searchQuery
     ? {
-        [Op.or]: [
-          { name: { [Op.like]: `%${searchQuery}%` } },
-          { description: { [Op.like]: `%${searchQuery}%` } },
-        ],
+        [Op.or]: [{ name: { [Op.like]: `%${searchQuery}%` } }, { description: { [Op.like]: `%${searchQuery}%` } }],
       }
     : {};
 

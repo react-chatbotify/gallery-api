@@ -1,10 +1,6 @@
 import { Op } from 'sequelize';
 
-import {
-  invalidateThemeDataCache,
-  invalidateThemeSearchCache,
-  invalidateThemeVersionsCache,
-} from './cacheService';
+import { invalidateThemeDataCache, invalidateThemeSearchCache, invalidateThemeVersionsCache } from './cacheService';
 import { invalidateUserOwnedThemesCache } from '../users/cacheService';
 import { Theme, ThemeJobQueue, ThemeVersion } from '../../databases/sql/models';
 import { sequelize } from '../../databases/sql/sql';
@@ -19,9 +15,7 @@ import Logger from '../../logger';
  *
  * @returns array of theme data
  */
-const getThemesDataByIdsFromDb = async (
-  themeIds: string[],
-): Promise<ThemeData[]> => {
+const getThemesDataByIdsFromDb = async (themeIds: string[]): Promise<ThemeData[]> => {
   if (!themeIds || themeIds.length === 0) {
     return [];
   }
@@ -52,17 +46,14 @@ const getThemeDataFromDb = async (
   pageNum: number,
   pageSize: number,
   sortBy: string = 'updatedAt',
-  sortDirection: 'ASC' | 'DESC' = 'DESC',
+  sortDirection: 'ASC' | 'DESC' = 'DESC'
 ): Promise<ThemeData[]> => {
   // construct clause for searching themes
   const limit = pageSize || 30;
   const offset = ((pageNum || 1) - 1) * limit;
   const whereClause = searchQuery
     ? {
-        [Op.or]: [
-          { name: { [Op.like]: `%${searchQuery}%` } },
-          { description: { [Op.like]: `%${searchQuery}%` } },
-        ],
+        [Op.or]: [{ name: { [Op.like]: `%${searchQuery}%` } }, { description: { [Op.like]: `%${searchQuery}%` } }],
       }
     : {};
 
@@ -87,9 +78,7 @@ const getThemeDataFromDb = async (
  *
  * @returns array of theme version data
  */
-const getThemeVersionsFromDb = async (
-  themeId: string,
-): Promise<ThemeVersionData[]> => {
+const getThemeVersionsFromDb = async (themeId: string): Promise<ThemeVersionData[]> => {
   const versions = await ThemeVersion.findAll({
     where: { themeId },
   });
@@ -108,13 +97,7 @@ const getThemeVersionsFromDb = async (
  *
  * @returns theme job queue entry
  */
-const addThemeJobToDb = async (
-  themeId: string,
-  userId: string,
-  name: string,
-  description: string,
-  version: string,
-) => {
+const addThemeJobToDb = async (themeId: string, userId: string, name: string, description: string, version: string) => {
   const themeJobQueueEntry = await ThemeJobQueue.create({
     themeId,
     userId,

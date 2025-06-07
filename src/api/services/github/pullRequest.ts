@@ -30,7 +30,7 @@ async function createBranch() {
         ref: `refs/heads/${newBranch}`,
         sha: baseBranch,
       },
-      config,
+      config
     );
     Logger.info('Branch created:', response.data);
     return true;
@@ -53,7 +53,7 @@ async function addFile() {
         content: Buffer.from(cssContent).toString('base64'),
         branch: newBranch,
       },
-      { headers: headers },
+      { headers: headers }
     );
     Logger.info('File added:', response.data);
     return true;
@@ -73,7 +73,7 @@ async function createPullRequest() {
         head: newBranch,
         base: baseBranch,
       },
-      { headers: headers },
+      { headers: headers }
     );
     Logger.info('Pull request created:', response.data);
     return true;

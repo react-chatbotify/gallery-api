@@ -12,11 +12,7 @@ const encrypt = (text: string): string => {
   const key = process.env.GITHUB_TOKEN_ENCRYPTION_KEY as string;
   const iv = crypto.randomBytes(16);
 
-  const cipher = crypto.createCipheriv(
-    algorithm,
-    Buffer.from(key, 'base64'),
-    iv,
-  );
+  const cipher = crypto.createCipheriv(algorithm, Buffer.from(key, 'base64'), iv);
   let encrypted = cipher.update(text, 'utf-8');
   encrypted = Buffer.concat([encrypted, cipher.final()]);
 
@@ -38,11 +34,7 @@ const decrypt = (text: string): string => {
   const iv = Buffer.from(parts.shift() as string, 'hex');
   const encryptedText = Buffer.from(parts.join(':'), 'hex');
 
-  const decipher = crypto.createDecipheriv(
-    algorithm,
-    Buffer.from(key, 'base64'),
-    iv,
-  );
+  const decipher = crypto.createDecipheriv(algorithm, Buffer.from(key, 'base64'), iv);
   let decrypted = decipher.update(encryptedText);
   decrypted = Buffer.concat([decrypted, decipher.final()]);
 

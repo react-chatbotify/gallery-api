@@ -21,7 +21,7 @@ const getThemeSearchFromCache = async (
   pageNum: number,
   pageSize: number,
   sortBy: string,
-  sortDirection: string,
+  sortDirection: string
 ): Promise<string[] | null> => {
   const searchKey = `${THEME_SEARCH_CACHE_PREFIX}:${searchQuery}:${pageNum}:${pageSize}:${sortBy}:${sortDirection}`;
 
@@ -47,7 +47,7 @@ const saveThemeSearchToCache = async (
   pageSize: number,
   sortBy: string,
   sortDirection: string,
-  themes: ThemeData[],
+  themes: ThemeData[]
 ) => {
   const searchKey = `${THEME_SEARCH_CACHE_PREFIX}:${searchQuery}:${pageNum}:${pageSize}:${sortBy}:${sortDirection}`;
   const themeIds = themes.map((theme) => theme.id);
@@ -58,13 +58,11 @@ const saveThemeSearchToCache = async (
  * Invalidates theme search cache (all).
  */
 const invalidateThemeSearchCache = async () => {
-  redisEphemeralClient
-    .keys(`${process.env.THEME_SEARCH_CACHE_PREFIX}:*`)
-    .then((keys) => {
-      keys.forEach(async (key) => {
-        await redisEphemeralClient.del(key);
-      });
+  redisEphemeralClient.keys(`${process.env.THEME_SEARCH_CACHE_PREFIX}:*`).then((keys) => {
+    keys.forEach(async (key) => {
+      await redisEphemeralClient.del(key);
     });
+  });
 };
 
 /**
@@ -74,9 +72,7 @@ const invalidateThemeSearchCache = async () => {
  *
  * @returns an array of theme data
  */
-const getThemeDataFromCache = async (
-  themeIds: string[],
-): Promise<ThemeData[]> => {
+const getThemeDataFromCache = async (themeIds: string[]): Promise<ThemeData[]> => {
   if (themeIds.length === 0) {
     return [];
   }
@@ -92,10 +88,7 @@ const getThemeDataFromCache = async (
     }
   });
 
-  const freshData =
-    missingThemeIds.length > 0
-      ? await getThemesDataByIdsFromDb(missingThemeIds)
-      : [];
+  const freshData = missingThemeIds.length > 0 ? await getThemesDataByIdsFromDb(missingThemeIds) : [];
   const freshDataMap = new Map(freshData.map((item) => [item.id, item]));
 
   // Replace null entries in rawThemes with fresh data
@@ -138,9 +131,7 @@ const invalidateThemeDataCache = async (themeId: string) => {
  *
  * @returns array of theme versions for given theme
  */
-const getThemeVersionsFromCache = async (
-  themeId: string,
-): Promise<ThemeVersionData[] | null> => {
+const getThemeVersionsFromCache = async (themeId: string): Promise<ThemeVersionData[] | null> => {
   const versionsKey = `${THEME_VERSIONS_CACHE_PREFIX}:${themeId}`;
   const versions = await redisEphemeralClient.get(versionsKey);
   if (versions === null) {
@@ -156,10 +147,7 @@ const getThemeVersionsFromCache = async (
  * @param themeId id of theme to save versions for
  * @param versions versions to save
  */
-const saveThemeVersionsToCache = async (
-  themeId: string,
-  versions: ThemeVersionData[],
-) => {
+const saveThemeVersionsToCache = async (themeId: string, versions: ThemeVersionData[]) => {
   const versionsKey = `${THEME_VERSIONS_CACHE_PREFIX}:${themeId}`;
   redisEphemeralClient.set(versionsKey, JSON.stringify(versions), { EX: 1800 });
 };

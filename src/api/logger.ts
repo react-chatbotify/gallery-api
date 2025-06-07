@@ -33,16 +33,11 @@ const format = winston.format.combine(
   // Colorize the message
   winston.format.colorize({ all: true }),
   // Define the format of the message
-  winston.format.printf(
-    (info) => `${info.timestamp} ${info.level}: ${info.message}`,
-  ),
+  winston.format.printf((info) => `${info.timestamp} ${info.level}: ${info.message}`)
 );
 
 // format to print logs in a file, uncolorize the logs due to lack of color support in files
-const formatForFile = winston.format.combine(
-  winston.format.uncolorize(),
-  winston.format.json(),
-);
+const formatForFile = winston.format.combine(winston.format.uncolorize(), winston.format.json());
 
 const transports = [
   // Print the messages in console.

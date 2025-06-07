@@ -1,10 +1,6 @@
 import { Request, Response } from 'express';
 
-import {
-  fetchTokensWithCode,
-  getUserData,
-  saveUserTokens,
-} from '../services/authentication/authentication';
+import { fetchTokensWithCode, getUserData, saveUserTokens } from '../services/authentication/authentication';
 import { encrypt } from '../services/cryptoService';
 import { randomBytes } from 'crypto';
 import { sendErrorResponse, sendSuccessResponse } from '../utils/responseUtils';
@@ -32,21 +28,14 @@ const handleCallback = async (req: Request, res: Response) => {
     });
     // For state validation failure, redirect_url from the initial call is not available.
     // Use a known safe default frontend URL.
-    const defaultFrontendErrorUrl = (process.env.FRONTEND_WEBSITE_URLS || '')
-      .split(',')[0]
-      ?.trim();
+    const defaultFrontendErrorUrl = (process.env.FRONTEND_WEBSITE_URLS || '').split(',')[0]?.trim();
     if (defaultFrontendErrorUrl) {
-      return res.redirect(
-        `${defaultFrontendErrorUrl}/error?reason=invalid_oAuthState`,
-      );
+      return res.redirect(`${defaultFrontendErrorUrl}/error?reason=invalid_oAuthState`);
     } else {
       // Fallback if no frontend URL is configured (critical server misconfiguration)
-      Logger.error(
-        'CRITICAL: No FRONTEND_WEBSITE_URLS configured for OAuth state validation failure redirect.',
-      );
+      Logger.error('CRITICAL: No FRONTEND_WEBSITE_URLS configured for OAuth state validation failure redirect.');
       return res.status(400).json({
-        error:
-          'OAuth state validation failed and no default frontend URL configured.',
+        error: 'OAuth state validation failed and no default frontend URL configured.',
       });
     }
   }
@@ -62,22 +51,17 @@ const handleCallback = async (req: Request, res: Response) => {
 
   let frontendBaseUrl: string;
 
-  if (
-    receivedRedirectUrl &&
-    allowedFrontendUrls.includes(receivedRedirectUrl)
-  ) {
+  if (receivedRedirectUrl && allowedFrontendUrls.includes(receivedRedirectUrl)) {
     frontendBaseUrl = receivedRedirectUrl;
   } else {
     Logger.warn(
-      `Invalid or missing redirect_url: '${receivedRedirectUrl}'. Allowed: ${allowedFrontendUrls.join(', ')}`,
+      `Invalid or missing redirect_url: '${receivedRedirectUrl}'. Allowed: ${allowedFrontendUrls.join(', ')}`
     );
     if (allowedFrontendUrls.length > 0) {
       frontendBaseUrl = allowedFrontendUrls[0]; // Default to the first allowed URL
     } else {
       // This is a server misconfiguration or critical error if no allowed URLs are configured.
-      Logger.error(
-        'CRITICAL: No FRONTEND_WEBSITE_URLS configured for redirection.',
-      );
+      Logger.error('CRITICAL: No FRONTEND_WEBSITE_URLS configured for redirection.');
       return res.status(400).json({
         error: 'Invalid redirect URL specified or application misconfigured.',
       });
@@ -93,15 +77,11 @@ const handleCallback = async (req: Request, res: Response) => {
   try {
     const key = encrypt(req.query.code as string);
     // Redirect to the login processing page on the validated or default frontend URL
-    res.redirect(
-      `${frontendBaseUrl}/login/process?provider=${process.env.GITHUB_LOGIN_PROVIDER}&key=${key}`,
-    );
+    res.redirect(`${frontendBaseUrl}/login/process?provider=${process.env.GITHUB_LOGIN_PROVIDER}&key=${key}`);
   } catch (error) {
     Logger.error('Unable to handle login callback from user: ', error);
     // Redirect to an error page on the validated or default frontend URL in case of other errors
-    return res.redirect(
-      `${frontendBaseUrl}/error?reason=authentication_callback_failed`,
-    );
+    return res.redirect(`${frontendBaseUrl}/error?reason=authentication_callback_failed`);
   }
 };
 
@@ -125,11 +105,7 @@ const handleLoginProcess = async (req: Request, res: Response) => {
   }
 
   // if unable to fetch user tokens, get user to login again
-  const tokenResponse = await fetchTokensWithCode(
-    sessionId,
-    req.query.key as string,
-    provider,
-  );
+  const tokenResponse = await fetchTokensWithCode(sessionId, req.query.key as string, provider);
   if (!tokenResponse) {
     return sendErrorResponse(res, 401, 'Login failed, please try again.');
   }
@@ -152,26 +128,14 @@ const handleLoginProcess = async (req: Request, res: Response) => {
     req.session.userId = userData.id;
 
     try {
-      const tokenSaved = await saveUserTokens(
-        req.sessionID,
-        userData.id,
-        tokenResponse,
-      );
+      const tokenSaved = await saveUserTokens(req.sessionID, userData.id, tokenResponse);
       if (!tokenSaved) {
         Logger.error('Failed to save tokens for session', req.sessionID);
-        return sendErrorResponse(
-          res,
-          500,
-          'Login partially succeeded, but token storage failed.',
-        );
+        return sendErrorResponse(res, 500, 'Login partially succeeded, but token storage failed.');
       }
     } catch (e) {
       Logger.error('saveUserTokens threw:', e);
-      return sendErrorResponse(
-        res,
-        500,
-        'Login partially succeeded, but token storage failed.',
-      );
+      return sendErrorResponse(res, 500, 'Login partially succeeded, but token storage failed.');
     }
 
     return sendSuccessResponse(res, 200, userData, 'Login successful.');
@@ -206,7 +170,7 @@ const handleLogout = async (req: Request, res: Response) => {
  *
  * @returns csrf token
  */
-const handleGetCsrfToken = async (req: Request, res: Response) => {
+const handleGetCsrfToken = (req: Request, res: Response) => {
   return res.json({ csrfToken: req.session.csrfToken });
 };
 
@@ -218,7 +182,7 @@ const handleGetCsrfToken = async (req: Request, res: Response) => {
  *
  * @returns github authorization url
  */
-const handleGitHubLogin = async (req: Request, res: Response) => {
+const handleGitHubLogin = (req: Request, res: Response) => {
   const redirectAfter = req.query.redirect_after as string | undefined;
   if (redirectAfter) {
     req.session.postLoginRedirectUrl = redirectAfter;
@@ -245,10 +209,4 @@ const handleGitHubLogin = async (req: Request, res: Response) => {
   res.json({ authorizationUrl: githubAuthUrl });
 };
 
-export {
-  handleCallback,
-  handleLoginProcess,
-  handleLogout,
-  handleGetCsrfToken,
-  handleGitHubLogin,
-};
+export { handleCallback, handleLoginProcess, handleLogout, handleGetCsrfToken, handleGitHubLogin };

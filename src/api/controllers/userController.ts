@@ -40,12 +40,7 @@ const getUserProfile = async (req: Request, res: Response) => {
 
   // if requesting for own data, allow
   if (queryUserId === sessionUserId) {
-    return sendSuccessResponse(
-      res,
-      200,
-      userData,
-      'User data fetched successfully.',
-    );
+    return sendSuccessResponse(res, 200, userData, 'User data fetched successfully.');
   }
 
   // if not requesting for own data and requestor is not admin, deny
@@ -85,12 +80,7 @@ const getUserOwnedThemes = async (req: Request, res: Response) => {
       saveUserOwnedThemesToCache(userData.id, userOwnedThemes);
     }
 
-    return sendSuccessResponse(
-      res,
-      200,
-      userOwnedThemes,
-      'User owned themes fetched successfully.',
-    );
+    return sendSuccessResponse(res, 200, userOwnedThemes, 'User owned themes fetched successfully.');
   } catch (error) {
     Logger.error('Error fetching owned themes:', error);
     return sendErrorResponse(res, 500, 'Failed to fetch user owned themes.');
@@ -125,12 +115,7 @@ const getUserFavoriteThemes = async (req: Request, res: Response) => {
       saveUserFavoriteThemesToCache(queryUserId, userFavorites);
     }
 
-    return sendSuccessResponse(
-      res,
-      200,
-      userFavorites,
-      'User favorite themes fetched successfully.',
-    );
+    return sendSuccessResponse(res, 200, userFavorites, 'User favorite themes fetched successfully.');
   } catch (error) {
     Logger.error('Error fetching favorite themes:', error);
     return sendErrorResponse(res, 500, 'Failed to fetch user favorite themes.');
@@ -172,12 +157,7 @@ const removeUserFavoriteTheme = async (req: Request, res: Response) => {
 
   try {
     await removeUserFavoriteThemeFromDb(userData.id, themeId);
-    sendSuccessResponse(
-      res,
-      200,
-      {},
-      'Removed theme from favorites successfully.',
-    );
+    sendSuccessResponse(res, 200, {}, 'Removed theme from favorites successfully.');
   } catch (error) {
     Logger.error('Error removing favorite theme:', error);
     sendErrorResponse(res, 500, 'Failed to remove favorite theme.');
@@ -212,12 +192,7 @@ const getUserOwnedPlugins = async (req: Request, res: Response) => {
       saveUserOwnedPluginsToCache(userData.id, userOwnedPlugins);
     }
 
-    return sendSuccessResponse(
-      res,
-      200,
-      userOwnedPlugins,
-      'User owned plugins fetched successfully.',
-    );
+    return sendSuccessResponse(res, 200, userOwnedPlugins, 'User owned plugins fetched successfully.');
   } catch (error) {
     Logger.error('Error fetching owned plugins:', error);
     return sendErrorResponse(res, 500, 'Failed to fetch user owned plugins.');
@@ -252,19 +227,10 @@ const getUserFavoritePlugins = async (req: Request, res: Response) => {
       saveUserFavoritePluginsToCache(queryUserId, userFavorites);
     }
 
-    return sendSuccessResponse(
-      res,
-      200,
-      userFavorites,
-      'User favorite plugins fetched successfully.',
-    );
+    return sendSuccessResponse(res, 200, userFavorites, 'User favorite plugins fetched successfully.');
   } catch (error) {
     Logger.error('Error fetching favorite plugins:', error);
-    return sendErrorResponse(
-      res,
-      500,
-      'Failed to fetch user favorite plugins.',
-    );
+    return sendErrorResponse(res, 500, 'Failed to fetch user favorite plugins.');
   }
 };
 
@@ -282,12 +248,7 @@ const addUserFavoritePlugin = async (req: Request, res: Response) => {
 
   try {
     await addUserFavoritePluginToDb(userData.id, pluginId);
-    sendSuccessResponse(
-      res,
-      201,
-      {},
-      'Added plugin to favorites successfully.',
-    );
+    sendSuccessResponse(res, 201, {}, 'Added plugin to favorites successfully.');
   } catch (error) {
     Logger.error('Error adding favorite plugin:', error);
     sendErrorResponse(res, 500, 'Failed to add favorite plugin.');
@@ -308,12 +269,7 @@ const removeUserFavoritePlugin = async (req: Request, res: Response) => {
 
   try {
     await removeUserFavoritePluginFromDb(userData.id, pluginId);
-    sendSuccessResponse(
-      res,
-      200,
-      {},
-      'Removed plugin from favorites successfully.',
-    );
+    sendSuccessResponse(res, 200, {}, 'Removed plugin from favorites successfully.');
   } catch (error) {
     Logger.error('Error removing favorite plugin:', error);
     sendErrorResponse(res, 500, 'Failed to remove favorite plugin.');
@@ -335,18 +291,13 @@ const setUserAcceptAuthorAgreement = async (req: Request, res: Response) => {
 
   if (typeof accept === 'boolean') {
     try {
-      await User.update(
-        { acceptedAuthorAgreement: accept ? new Date() : null },
-        { where: { id: userId } },
-      );
+      await User.update({ acceptedAuthorAgreement: accept ? new Date() : null }, { where: { id: userId } });
 
       sendSuccessResponse(
         res,
         200,
         {},
-        accept
-          ? 'Author agreement accepted successfully.'
-          : 'Author agreement status reset successfully.',
+        accept ? 'Author agreement accepted successfully.' : 'Author agreement status reset successfully.'
       );
     } catch (error) {
       Logger.error('Error updating user author agreement:', error);

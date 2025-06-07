@@ -1,17 +1,11 @@
 import { Request, Response } from 'express';
 import fetch from 'node-fetch';
 
-import {
-  getProjectDetailsFromCache,
-  saveProjectDetailsToCache,
-} from '../services/projects/cacheService';
+import { getProjectDetailsFromCache, saveProjectDetailsToCache } from '../services/projects/cacheService';
 import { sendErrorResponse, sendSuccessResponse } from '../utils/responseUtils';
 import Logger from '../logger';
 
-const WHITELISTED_PROJECTS = [
-  'react-chatbotify/gallery-api',
-  'react-chatbotify/gallery-website',
-];
+const WHITELISTED_PROJECTS = ['react-chatbotify/gallery-api', 'react-chatbotify/gallery-website'];
 
 /**
  * Controller to handle project contributors fetching.
@@ -24,11 +18,7 @@ const getProjectDetails = async (req: Request, res: Response) => {
 
   // Validate project name
   if (!WHITELISTED_PROJECTS.includes(projectName)) {
-    sendErrorResponse(
-      res,
-      400,
-      'Invalid project name. Project not whitelisted.',
-    );
+    sendErrorResponse(res, 400, 'Invalid project name. Project not whitelisted.');
   }
 
   try {
@@ -45,19 +35,13 @@ const getProjectDetails = async (req: Request, res: Response) => {
       }
 
       const data = await response.json();
-      const contributors = data.map(
-        (contributor: {
-          avatar_url: string;
-          html_url: string;
-          login: string;
-        }) => {
-          return {
-            avatar_url: contributor.avatar_url,
-            html_url: contributor.html_url,
-            login: contributor.login,
-          };
-        },
-      );
+      const contributors = data.map((contributor: { avatar_url: string; html_url: string; login: string }) => {
+        return {
+          avatar_url: contributor.avatar_url,
+          html_url: contributor.html_url,
+          login: contributor.login,
+        };
+      });
 
       // Save the filtered contributors to cache
       await saveProjectDetailsToCache(projectName, { contributors });
@@ -65,12 +49,7 @@ const getProjectDetails = async (req: Request, res: Response) => {
       cachedData = { contributors };
     }
 
-    sendSuccessResponse(
-      res,
-      200,
-      cachedData,
-      'Project details fetched successfully.',
-    );
+    sendSuccessResponse(res, 200, cachedData, 'Project details fetched successfully.');
   } catch (error) {
     Logger.error('Error fetching project details:', error);
     sendErrorResponse(res, 500, 'Failed to fetch project details.');

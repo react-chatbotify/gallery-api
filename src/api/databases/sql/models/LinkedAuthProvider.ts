@@ -42,7 +42,7 @@ LinkedAuthProvider.init(
     sequelize,
     modelName: 'LinkedAuthProvider',
     timestamps: false,
-  },
+  }
 );
 
 export default LinkedAuthProvider;
