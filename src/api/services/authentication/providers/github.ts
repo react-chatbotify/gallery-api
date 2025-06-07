@@ -35,9 +35,9 @@ const getUserTokensWithCode = async (key: string) => {
     // buffer 15 minutes from token expiry times, hence -900
     // multiply expiry time by 1000 since it is given in seconds
     const tokenResponse: TokenResponse = {
-      accessToken: response.data.access_token,
+      accessToken: response.data.access_token as string,
       accessTokenExpiry: Date.now() + response.data.expires_in * 1000 - 900,
-      refreshToken: response.data.refresh_token,
+      refreshToken: response.data.refresh_token as string,
       refreshTokenExpiry: Date.now() + response.data.refresh_token_expires_in * 1000 - 900,
     };
     return tokenResponse;

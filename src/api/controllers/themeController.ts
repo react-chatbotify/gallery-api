@@ -46,8 +46,8 @@ const getThemesNoAuth = async (req: Request, res: Response) => {
       themes = await getThemeDataFromCache(searchResult);
     } else {
       themes = await getThemeDataFromDb(searchQuery, pageNum, pageSize, sortBy, sortDirection);
-      saveThemeSearchToCache(searchQuery, pageNum, pageSize, sortBy, sortDirection, themes);
-      saveThemeDataToCache(themes);
+      void saveThemeSearchToCache(searchQuery, pageNum, pageSize, sortBy, sortDirection, themes);
+      void saveThemeDataToCache(themes);
     }
 
     sendSuccessResponse(res, 200, themes, 'Themes fetched successfully.');
@@ -88,15 +88,15 @@ const getThemes = async (req: Request, res: Response) => {
       themes = await getThemeDataFromCache(searchResult);
     } else {
       themes = await getThemeDataFromDb(searchQuery, pageNum, pageSize, sortBy, sortDirection);
-      saveThemeSearchToCache(searchQuery, pageNum, pageSize, sortBy, sortDirection, themes);
-      saveThemeDataToCache(themes);
+      void saveThemeSearchToCache(searchQuery, pageNum, pageSize, sortBy, sortDirection, themes);
+      void saveThemeDataToCache(themes);
     }
 
     // check if cache contains user favorites and return if so ; otherwise fetch from db
     let userFavorites = await getUserFavoriteThemesFromCache(userId);
     if (userFavorites === null) {
       userFavorites = await getUserFavoriteThemesFromDb(userId);
-      saveUserFavoriteThemesToCache(userId, userFavorites);
+      void saveUserFavoriteThemesToCache(userId, userFavorites);
     }
     const userFavoriteIds = new Set(userFavorites.map((item) => item.id));
 
@@ -140,7 +140,7 @@ const getThemeById = async (req: Request, res: Response) => {
       let userFavorites = await getUserFavoriteThemesFromCache(userId);
       if (userFavorites === null) {
         userFavorites = await getUserFavoriteThemesFromDb(userId);
-        saveUserFavoriteThemesToCache(userId, userFavorites);
+        void saveUserFavoriteThemesToCache(userId, userFavorites);
       }
       const userFavoriteIds = new Set(userFavorites.map((item) => item.id));
       themeData.isFavorite = userFavoriteIds.has(themeId);
@@ -168,7 +168,7 @@ const getThemeVersions = async (req: Request, res: Response) => {
     let versions = await getThemeVersionsFromCache(themeId);
     if (versions === null) {
       versions = await getThemeVersionsFromDb(themeId);
-      saveThemeVersionsToCache(themeId, versions);
+      void saveThemeVersionsToCache(themeId, versions);
     }
 
     sendSuccessResponse(res, 200, versions, 'Theme versions fetched successfully.');

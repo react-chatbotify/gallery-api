@@ -24,6 +24,7 @@ import {
 import { sendErrorResponse, sendSuccessResponse } from '../utils/responseUtils';
 import { User } from '../databases/sql/models';
 import Logger from '../logger';
+import { UserData } from '../interfaces/UserData';
 
 /**
  * Retrieves the user profile information (i.e. user data).
@@ -33,8 +34,8 @@ import Logger from '../logger';
  *
  * @returns user data if successful, 403 otherwise
  */
-const getUserProfile = async (req: Request, res: Response) => {
-  const userData = req.userData;
+const getUserProfile = (req: Request, res: Response) => {
+  const userData = req.userData as UserData;
   const queryUserId = (req.query.userId as string) ?? userData.id;
   const sessionUserId = req.session.userId;
 
@@ -60,7 +61,7 @@ const getUserProfile = async (req: Request, res: Response) => {
  * @returns list of user's themes if successful, 403 otherwise
  */
 const getUserOwnedThemes = async (req: Request, res: Response) => {
-  const userData = req.userData;
+  const userData = req.userData as UserData;
   const queryUserId = (req.query.userId as string) ?? userData.id;
   const sessionUserId = req.session.userId;
 
@@ -77,7 +78,7 @@ const getUserOwnedThemes = async (req: Request, res: Response) => {
 
     if (userOwnedThemes === null) {
       userOwnedThemes = await getUserOwnedThemesFromDb(queryUserId);
-      saveUserOwnedThemesToCache(userData.id, userOwnedThemes);
+      void saveUserOwnedThemesToCache(userData.id, userOwnedThemes);
     }
 
     return sendSuccessResponse(res, 200, userOwnedThemes, 'User owned themes fetched successfully.');
@@ -96,7 +97,7 @@ const getUserOwnedThemes = async (req: Request, res: Response) => {
  * @returns list of user's favorited themes if successful, 403 otherwise
  */
 const getUserFavoriteThemes = async (req: Request, res: Response) => {
-  const userData = req.userData;
+  const userData = req.userData as UserData;
   const queryUserId = (req.query.userId as string) ?? userData.id;
   const sessionUserId = req.session.userId;
 
@@ -112,7 +113,7 @@ const getUserFavoriteThemes = async (req: Request, res: Response) => {
     let userFavorites = await getUserFavoriteThemesFromCache(queryUserId);
     if (userFavorites === null) {
       userFavorites = await getUserFavoriteThemesFromDb(queryUserId);
-      saveUserFavoriteThemesToCache(queryUserId, userFavorites);
+      void saveUserFavoriteThemesToCache(queryUserId, userFavorites);
     }
 
     return sendSuccessResponse(res, 200, userFavorites, 'User favorite themes fetched successfully.');
@@ -131,7 +132,7 @@ const getUserFavoriteThemes = async (req: Request, res: Response) => {
  * @returns 201 if successful, 404 if theme not found, 400 if already favorited, 500 otherwise
  */
 const addUserFavoriteTheme = async (req: Request, res: Response) => {
-  const userData = req.userData;
+  const userData = req.userData as UserData;
   const { themeId } = req.body;
 
   try {
@@ -152,7 +153,7 @@ const addUserFavoriteTheme = async (req: Request, res: Response) => {
  * @returns 200 if successful, 404 if theme not found, 500 otherwise
  */
 const removeUserFavoriteTheme = async (req: Request, res: Response) => {
-  const userData = req.userData;
+  const userData = req.userData as UserData;
   const themeId = req.query.themeId as string;
 
   try {
@@ -173,7 +174,7 @@ const removeUserFavoriteTheme = async (req: Request, res: Response) => {
  * @returns list of user's plugins if successful, 403 otherwise
  */
 const getUserOwnedPlugins = async (req: Request, res: Response) => {
-  const userData = req.userData;
+  const userData = req.userData as UserData;
   const queryUserId = (req.query.userId as string) ?? userData.id;
   const sessionUserId = req.session.userId;
 
@@ -189,7 +190,7 @@ const getUserOwnedPlugins = async (req: Request, res: Response) => {
     let userOwnedPlugins = await getUserOwnedPluginsFromCache(queryUserId);
     if (userOwnedPlugins === null) {
       userOwnedPlugins = await getUserOwnedPluginsFromDb(queryUserId);
-      saveUserOwnedPluginsToCache(userData.id, userOwnedPlugins);
+      void saveUserOwnedPluginsToCache(userData.id, userOwnedPlugins);
     }
 
     return sendSuccessResponse(res, 200, userOwnedPlugins, 'User owned plugins fetched successfully.');
@@ -208,7 +209,7 @@ const getUserOwnedPlugins = async (req: Request, res: Response) => {
  * @returns list of user's favorited plugins if successful, 403 otherwise
  */
 const getUserFavoritePlugins = async (req: Request, res: Response) => {
-  const userData = req.userData;
+  const userData = req.userData as UserData;
   const queryUserId = (req.query.userId as string) ?? userData.id;
   const sessionUserId = req.session.userId;
 
@@ -224,7 +225,7 @@ const getUserFavoritePlugins = async (req: Request, res: Response) => {
     let userFavorites = await getUserFavoritePluginsFromCache(queryUserId);
     if (userFavorites === null) {
       userFavorites = await getUserFavoritePluginsFromDb(queryUserId);
-      saveUserFavoritePluginsToCache(queryUserId, userFavorites);
+      void saveUserFavoritePluginsToCache(queryUserId, userFavorites);
     }
 
     return sendSuccessResponse(res, 200, userFavorites, 'User favorite plugins fetched successfully.');
@@ -243,7 +244,7 @@ const getUserFavoritePlugins = async (req: Request, res: Response) => {
  * @returns 201 if successful, 404 if theme not found, 400 if already favorited, 500 otherwise
  */
 const addUserFavoritePlugin = async (req: Request, res: Response) => {
-  const userData = req.userData;
+  const userData = req.userData as UserData;
   const { pluginId } = req.body;
 
   try {
@@ -264,7 +265,7 @@ const addUserFavoritePlugin = async (req: Request, res: Response) => {
  * @returns 200 if successful, 404 if theme not found, 500 otherwise
  */
 const removeUserFavoritePlugin = async (req: Request, res: Response) => {
-  const userData = req.userData;
+  const userData = req.userData as UserData;
   const pluginId = req.query.pluginId as string;
 
   try {
@@ -285,7 +286,7 @@ const removeUserFavoritePlugin = async (req: Request, res: Response) => {
  * @returns 200 if successful, 400 if invalid request body and, 500 otherwise
  */
 const setUserAcceptAuthorAgreement = async (req: Request, res: Response) => {
-  const userData = req.userData;
+  const userData = req.userData as UserData;
   const userId = userData.id;
   const accept = req.body.accept;
 

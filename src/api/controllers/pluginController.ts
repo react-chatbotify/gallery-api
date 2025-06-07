@@ -96,7 +96,7 @@ const getPlugins = async (req: Request, res: Response) => {
     let userFavorites = await getUserFavoritePluginsFromCache(userId);
     if (userFavorites === null) {
       userFavorites = await getUserFavoritePluginsFromDb(userId);
-      saveUserFavoritePluginsToCache(userId, userFavorites);
+      void saveUserFavoritePluginsToCache(userId, userFavorites);
     }
     const userFavoriteIds = new Set(userFavorites.map((item) => item.id));
 

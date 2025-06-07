@@ -14,7 +14,7 @@ import Logger from '../logger';
  *
  * @returns redirects user to login process page on frontend on success, error page otherwise
  */
-const handleCallback = async (req: Request, res: Response) => {
+const handleCallback = (req: Request, res: Response) => {
   // State validation must happen before anything else.
   const receivedState = req.query.state as string;
   const sessionState = req.session.oAuthState;
@@ -116,29 +116,35 @@ const handleLoginProcess = async (req: Request, res: Response) => {
     return sendErrorResponse(res, 401, 'Login failed, please try again.');
   }
 
-  req.session.regenerate(async (err) => {
+  req.session.regenerate((err: Error | null) => {
     if (err) {
       Logger.error('Error regenerating session:', err);
-      // Potentially send an error response here, though the user is technically logged in.
-      // For now, we'll log the error and proceed with the success response
-      // as the main login functionality was successful.
+      return sendErrorResponse(res, 401, 'Session creation failed, please try again.');
     }
-    // Store session data again after regeneration as regenerate creates a new session
-    req.session.provider = provider;
-    req.session.userId = userData.id;
 
-    try {
-      const tokenSaved = await saveUserTokens(req.sessionID, userData.id, tokenResponse);
-      if (!tokenSaved) {
-        Logger.error('Failed to save tokens for session', req.sessionID);
+    const handleSession = async () => {
+      // store session data again after regeneration as regenerate creates a new session
+      req.session.provider = provider;
+      req.session.userId = userData.id;
+
+      try {
+        const tokenSaved = await saveUserTokens(req.sessionID, userData.id, tokenResponse);
+        if (!tokenSaved) {
+          Logger.error('Failed to save tokens for session', req.sessionID);
+          return sendErrorResponse(res, 500, 'Login partially succeeded, but token storage failed.');
+        }
+      } catch (e) {
+        Logger.error('saveUserTokens threw:', e);
         return sendErrorResponse(res, 500, 'Login partially succeeded, but token storage failed.');
       }
-    } catch (e) {
-      Logger.error('saveUserTokens threw:', e);
-      return sendErrorResponse(res, 500, 'Login partially succeeded, but token storage failed.');
-    }
 
-    return sendSuccessResponse(res, 200, userData, 'Login successful.');
+      sendSuccessResponse(res, 200, userData, 'Login successful.');
+    };
+
+    handleSession().catch((e) => {
+      Logger.error('Unexpected error in session handling:', e);
+      sendErrorResponse(res, 500, 'An unexpected error occurred.');
+    });
   });
 };
 
@@ -150,10 +156,10 @@ const handleLoginProcess = async (req: Request, res: Response) => {
  *
  * @returns user data on success, 401 unauthorized otherwise
  */
-const handleLogout = async (req: Request, res: Response) => {
+const handleLogout = (req: Request, res: Response) => {
   res.clearCookie('connect.sid');
 
-  req.session.destroy((err) => {
+  req.session.destroy((err: Error | null) => {
     if (err) {
       return sendErrorResponse(res, 500, err.message);
     }

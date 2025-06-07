@@ -58,7 +58,7 @@ const runSyncThemesFromGitHub = async () => {
     const databaseThemes = await Theme.findAll({
       attributes: ['id'],
     });
-    const databaseThemeIds = databaseThemes.map((theme) => theme.dataValues.id);
+    const databaseThemeIds: string[] = databaseThemes.map((theme) => theme.dataValues.id);
 
     // fetch all themes from github
     const gitHubThemes = await fetchFolders();
@@ -67,10 +67,10 @@ const runSyncThemesFromGitHub = async () => {
     const themeJobs = await ThemeJobQueue.findAll({
       attributes: ['id'],
     });
-    const themeJobIds = themeJobs.map((job) => job.dataValues.id);
+    const themeJobIds: string[] = themeJobs.map((job) => job.dataValues.id);
 
     // delete themes no longer found on github, but exclude those in theme job
-    const themesToDelete = databaseThemeIds.filter((id) => !gitHubThemes.includes(id) && !themeJobIds.includes(id));
+    const themesToDelete: string[] = databaseThemeIds.filter((id) => !gitHubThemes.includes(id) && !themeJobIds.includes(id));
     if (themesToDelete.length > 0) {
       await Theme.destroy({
         where: {
@@ -110,12 +110,12 @@ const runSyncThemesFromGitHub = async () => {
         } else {
           throw new Error(`Missing meta.json data for theme: ${themeId}`);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         await transaction.rollback();
         Logger.error(`Failed to create theme ${themeId}: ${error}`);
       }
     }
-  } catch (error) {
+  } catch (error: unknown) {
     Logger.error('Error fetching themes:', error);
     // todo: send an alert on failure since this is critical?
   }
