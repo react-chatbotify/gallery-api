@@ -1,5 +1,5 @@
 # Stage 1: Install dependencies
-FROM node:20-alpine AS dependencies
+FROM node:24-slim AS dependencies
 
 # Maintainer information
 LABEL org.opencontainers.image.authors="Tan Jin (tjtanjin)"
@@ -14,7 +14,7 @@ COPY ./package.json ./
 RUN npm install
 
 # Stage 2: Build the application
-FROM node:20-alpine AS build
+FROM node:24-slim AS build
 
 # Set the working directory
 WORKDIR /app
@@ -33,7 +33,7 @@ COPY ./package.json ./
 RUN npm run build
 
 # Stage 3: Create the final image
-FROM node:20-alpine
+FROM node:24-slim
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -45,7 +45,7 @@ COPY --from=build /app/build ./build
 COPY --from=build /app/node_modules ./node_modules
 
 # Copy additional files needed for runtime
-COPY package.json ./
+COPY ./package.json ./
 
 # Start the application
 CMD ["node", "./build/api/index.js"]
