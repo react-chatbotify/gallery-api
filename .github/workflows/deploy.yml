@@ -63,8 +63,8 @@ jobs:
         # Deploys to VPS.
         run: |
           OWNER="${{ vars.GHCR_OWNER }}"
-          APPLICATION_API_IMAGE="ghcr.io/$OWNER/{{ github.event.repository.name }}-api:${{ inputs.target_tag }}"
-          APPLICATION_JOBS_IMAGE="ghcr.io/$OWNER/{{ github.event.repository.name }}-jobs:${{ inputs.target_tag }}"
+          APPLICATION_API_IMAGE="ghcr.io/$OWNER/${{ github.event.repository.name }}-api:${{ inputs.target_tag }}"
+          APPLICATION_JOBS_IMAGE="ghcr.io/$OWNER/${{ github.event.repository.name }}-jobs:${{ inputs.target_tag }}"
           echo "Deploying to VPS..."
           ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }} "\
 
