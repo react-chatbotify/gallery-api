@@ -134,6 +134,7 @@ jobs:
         # Cleans up old api images
         if: steps.changes.outputs.api == 'true'
         uses: actions/delete-package-versions@v5
+        continue-on-error: true
         with:
           package-name: ${{ github.event.repository.name }}-api
           package-type: container
@@ -145,6 +146,7 @@ jobs:
         # Cleans up old jobs images
         if: steps.changes.outputs.jobs == 'true'
         uses: actions/delete-package-versions@v5
+        continue-on-error: true
         with:
           package-name: ${{ github.event.repository.name }}-jobs
           package-type: container
