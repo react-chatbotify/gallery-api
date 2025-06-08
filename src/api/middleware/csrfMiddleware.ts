@@ -12,9 +12,13 @@ const csrfMiddleware: RequestHandler = (req, res, next) => {
     }
     // send token to client (either as a cookie or in locals for your /csrf-token endpoint)
     res.cookie('XSRF-TOKEN', tokens.create(req.session.csrfToken), {
-      httpOnly: false,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      // if developing locally, set to insecure
+      secure: process.env.NODE_ENV !== 'local',
+      // in production, use "lax" as frontend and backend have the same root domain
+      sameSite: process.env.NODE_ENV === 'local' ? 'none' : 'lax',
+      // if not in production, leave domain as undefined
+      domain: process.env.NODE_ENV === 'local' ? undefined : process.env.COOKIE_DOMAIN,
     });
     return next();
   }
