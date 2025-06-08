@@ -8,6 +8,6 @@ void runSyncPluginsFromNpm();
 
 // todo: ideally a cronjob should be used to only spin up job pod when required
 // but nvm this is good enough for now
-setInterval(() => runProcessThemeQueue(), 900000);
-setInterval(() => runSyncThemesFromGitHub(), 86400000);
-setInterval(() => runSyncPluginsFromNpm(), 86400000);
+setInterval(() => void runProcessThemeQueue(), 900000);
+setInterval(() => void runSyncThemesFromGitHub(), 86400000);
+setInterval(() => void runSyncPluginsFromNpm(), 86400000);
