@@ -12,7 +12,8 @@ const csrfMiddleware: RequestHandler = (req, res, next) => {
     }
     // send token to client (either as a cookie or in locals for your /csrf-token endpoint)
     res.cookie('XSRF-TOKEN', tokens.create(req.session.csrfToken), {
-      httpOnly: true,
+      // false so client-side can read it
+      httpOnly: false,
       // if developing locally, set to insecure
       secure: process.env.NODE_ENV !== 'local',
       // in production, use "lax" as frontend and backend have the same root domain

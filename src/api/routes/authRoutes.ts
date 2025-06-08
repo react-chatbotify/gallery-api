@@ -1,11 +1,6 @@
 import express from 'express';
 
-import {
-  handleCallback,
-  handleGitHubLogin,
-  handleLoginProcess,
-  handleLogout,
-} from '../controllers/authController';
+import { handleCallback, handleGitHubLogin, handleLoginProcess, handleLogout } from '../controllers/authController';
 
 const router = express.Router();
 
