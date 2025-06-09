@@ -7,6 +7,7 @@ import { sequelize } from '../api/databases/sql/sql';
 import { GitHubRepoContent } from '../api/interfaces/GitHubRepoContent';
 import { ThemeMetaData } from '../api/interfaces/themes/ThemeMetaData';
 import Logger from '../api/logger';
+import { ThemeData } from '../api/interfaces/themes/ThemeData';
 
 /**
  * Fetch theme folder names (i.e. theme ids) from github.
@@ -120,7 +121,7 @@ const runSyncThemesFromGitHub = async () => {
             }
           }
 
-          const themeData: any = {
+          const themeData: Partial<ThemeData> = {
             id: themeId,
             name: metaData.name,
             description: metaData.description,

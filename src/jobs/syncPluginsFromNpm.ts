@@ -4,6 +4,7 @@ import LinkedAuthProvider from '../api/databases/sql/models/LinkedAuthProvider';
 import { sequelize } from '../api/databases/sql/sql';
 import Logger from '../api/logger';
 import { fetchNpmPluginsByTag } from '../api/services/plugins/npmService';
+import { PluginData } from '../api/interfaces/plugins/PluginData';
 
 /**
  * Runs job to synchronize plugins between the npm registry and the local database.
@@ -58,7 +59,7 @@ const runSyncPluginsFromNpm = async () => {
       try {
         if (!existingDbPlugin) {
           // Plugin exists in npm but not in DB -> Create
-          const pluginCreateData: any = {
+          const pluginCreateData: Partial<PluginData> = {
             id: npmPluginData.id,
             name: npmPluginData.name,
             description: npmPluginData.description,
@@ -107,7 +108,9 @@ const runSyncPluginsFromNpm = async () => {
           }
 
           await Plugin.create(pluginCreateData, { transaction });
-          Logger.info(`Created new plugin in database: ${npmPluginData.id}${pluginCreateData.userId ? ` and linked to user ${pluginCreateData.userId}` : ''}`);
+          Logger.info(
+            `Created new plugin in database: ${npmPluginData.id}${pluginCreateData.userId ? ` and linked to user ${pluginCreateData.userId}` : ''}`
+          );
         } else {
           // Plugin exists in both DB and npm -> Check for updates
           const needsUpdate =

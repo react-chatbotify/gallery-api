@@ -35,7 +35,7 @@ const getPluginVersionsFromNpm = async (pluginId: string): Promise<PluginVersion
 /**
  * Fetch metadata for a specific npm package.
  */
-const fetchPackageMeta = async (packageName: string): Promise<any> => {
+const fetchPackageMeta = async (packageName: string): Promise<PluginData> => {
   const url = `https://registry.npmjs.org/${encodeURIComponent(packageName)}`;
   const response = await axios.get(url);
   const packageData = response.data;
@@ -59,7 +59,7 @@ const fetchPackageMeta = async (packageName: string): Promise<any> => {
       authorName = packageData.maintainers[0].name;
     }
   }
-  
+
   return { ...packageData, authorName };
 };
 
