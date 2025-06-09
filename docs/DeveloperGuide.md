@@ -57,7 +57,7 @@ To setup the project locally, follow the steps below:
     ```
 3) Next, `cd` into the project and run the following command:
     ```
-    npm run dev
+    npm run start
     ```
 4) The API server will be available on **http://localhost:3100**, and you may quickly verify that it is running by visiting the endpoint for fetching themes: http://localhost:3100/api/v1/themes?pageSize=30&pageNum=1
 
@@ -77,7 +77,7 @@ Lastly, the *src* directory contains all of the application code. It is divided 
 
 ### Architecture
 
-The backend project consists of multiple microservices. When you run `npm run dev`, it triggers Docker Compose, which sets up the following networks and services:
+The backend project consists of multiple microservices. When you run `npm run start`, it triggers Docker Compose, which sets up the following networks and services:
 
 ![image](https://github.com/user-attachments/assets/635029be-768b-40b3-88ff-0ebe15c577f4)
 

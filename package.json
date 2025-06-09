@@ -27,7 +27,6 @@
     "lint": "eslint \"{src,test,types}/**/*.ts\" --fix",
     "start": "docker compose -p rcb-gallery-api --env-file ./config/env/.env -f ./docker/docker-compose.yml -f ./docker/docker-compose.override.yml up -d --build",
     "stop": "docker compose -p rcb-gallery-api down",
-    "dev": "docker compose -p dev -f ./docker/docker-compose.dev.yml down && docker compose -p dev -f ./docker/docker-compose.dev.yml up --build",
     "start:watch-api": "nodemon --config nodemon-api.json",
     "start:watch-jobs": "nodemon --config nodemon-jobs.json"
   },
