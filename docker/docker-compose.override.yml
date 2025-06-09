@@ -35,3 +35,18 @@ services:
     volumes:
       - ..:/app
       - /app/node_modules
+
+  # uncomment for testing locally, but you'll need your own honeycomb account and creds
+  # otel-collector:
+  #   image: otel/opentelemetry-collector:latest
+  #   container_name: rcb-discord-bot-otel-collector
+  #   environment:
+  #     HONEYCOMB_API_KEY: ${HONEYCOMB_API_KEY}
+  #     HONEYCOMB_DATASET: ${HONEYCOMB_DATASET}
+  #   volumes:
+  #     - ./otel-config.yaml:/etc/otel/config.yaml:ro
+  #   command: ["--config", "/etc/otel/config.yaml"]
+  #   ports:
+  #     - "4317:4317"
+  #   networks:
+  #     - app-network
