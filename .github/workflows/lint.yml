@@ -48,10 +48,9 @@ jobs:
 
   trigger-deploy:
     needs: lint
-    name: Deploy
+    name: Publish & Deploy
     if: ${{ inputs.skip_deploy == false }}
     uses: ./.github/workflows/publish-and-deploy.yml
     secrets: inherit
     with:
       target_env: ${{ inputs.target_env }}
-      target_tag: ${{ needs.build.outputs.target_tag }}

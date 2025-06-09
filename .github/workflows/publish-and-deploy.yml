@@ -4,10 +4,6 @@ run-name: Publish & Deploy
 on:
   workflow_call:
     inputs:
-      target_tag:
-        required: true
-        type: string
-        description: 'The deployment target tag, e.g. prod-latest or dev-latest'
       target_env:
         required: true
         type: string
@@ -193,7 +189,7 @@ jobs:
 
           # copy compose files
           scp -o StrictHostKeyChecking=no docker/docker-compose.yml ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/docker/docker-compose.yml
-          if [ "${{ inputs.target_tag }}" = "prod-latest" ]; then
+          if [ "${{ needs.build.outputs.target_tag }}" = "prod-latest" ]; then
             scp -o StrictHostKeyChecking=no docker/docker-compose.prod.yml ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/docker/docker-compose.override.yml
             scp -o StrictHostKeyChecking=no otel-config.yaml ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/otel-config.yaml
           else
@@ -209,8 +205,8 @@ jobs:
         # Deploys to VPS.
         run: |
           OWNER="${{ vars.GHCR_OWNER }}"
-          APPLICATION_API_IMAGE="ghcr.io/$OWNER/${{ github.event.repository.name }}-api:${{ inputs.target_tag }}"
-          APPLICATION_JOBS_IMAGE="ghcr.io/$OWNER/${{ github.event.repository.name }}-jobs:${{ inputs.target_tag }}"
+          APPLICATION_API_IMAGE="ghcr.io/$OWNER/${{ github.event.repository.name }}-api:${{ needs.build.outputs.target_tag }}"
+          APPLICATION_JOBS_IMAGE="ghcr.io/$OWNER/${{ github.event.repository.name }}-jobs:${{ needs.build.outputs.target_tag }}"
           echo "Deploying to VPS..."
           ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }} "\
 
