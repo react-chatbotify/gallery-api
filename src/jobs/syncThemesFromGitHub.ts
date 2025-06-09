@@ -2,6 +2,7 @@ import axios from 'axios';
 import { Theme } from '../api/databases/sql/models';
 import { ThemeJobQueue } from '../api/databases/sql/models';
 import { ThemeVersion } from '../api/databases/sql/models';
+import { LinkedAuthProvider } from '../api/databases/sql/models';
 import { sequelize } from '../api/databases/sql/sql';
 import { GitHubRepoContent } from '../api/interfaces/GitHubRepoContent';
 import { ThemeMetaData } from '../api/interfaces/themes/ThemeMetaData';
@@ -89,14 +90,50 @@ const runSyncThemesFromGitHub = async () => {
       try {
         const metaData = await fetchMetaJson(themeId);
         if (metaData) {
-          const newTheme = await Theme.create(
-            {
-              id: themeId,
-              name: metaData.name,
-              description: metaData.description,
-            },
-            { transaction }
-          );
+          let userIdToLink: string | null = null;
+
+          // attempt to link theme to user id based on github handle if possible
+          if (metaData.github) {
+            Logger.info(`Attempting to link user for theme: ${themeId} via GitHub username: ${metaData.github}`);
+            try {
+              const githubUserResponse = await axios.get(`https://api.github.com/users/${metaData.github}`);
+              const githubNumericalId = githubUserResponse.data.id;
+
+              if (githubNumericalId) {
+                const linkedAuth = await LinkedAuthProvider.findOne({
+                  where: {
+                    providerUserId: String(githubNumericalId),
+                    provider: 'github',
+                  },
+                  transaction,
+                });
+
+                if (linkedAuth) {
+                  userIdToLink = linkedAuth.dataValues.userId;
+                  Logger.info(`Found linked account for GitHub user ${metaData.github}: User ID ${userIdToLink}`);
+                } else {
+                  Logger.info(`No linked account found for GitHub user ${metaData.github}`);
+                }
+              }
+            } catch (error) {
+              Logger.error(`Error fetching GitHub user ID for ${metaData.github} or finding linked account:`, error);
+            }
+          }
+
+          const themeData: any = {
+            id: themeId,
+            name: metaData.name,
+            description: metaData.description,
+          };
+
+          if (userIdToLink) {
+            themeData.userId = userIdToLink;
+            Logger.info(`Successfully linked theme ${themeId} to user ${userIdToLink}`);
+          } else if (metaData.github) {
+            Logger.warn(`No user found to link for theme ${themeId} with GitHub username ${metaData.github}`);
+          }
+
+          await Theme.create(themeData, { transaction });
 
           await ThemeVersion.create(
             {
