@@ -7,6 +7,7 @@ interface PluginData {
   packageUrl: string;
   isFavorite?: boolean;
   userId: string;
+  authorName?: string;
 }
 
 export { PluginData };

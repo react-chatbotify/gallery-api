@@ -35,10 +35,32 @@ const getPluginVersionsFromNpm = async (pluginId: string): Promise<PluginVersion
 /**
  * Fetch metadata for a specific npm package.
  */
-const fetchPackageMeta = async (packageName: string) => {
+const fetchPackageMeta = async (packageName: string): Promise<any> => {
   const url = `https://registry.npmjs.org/${encodeURIComponent(packageName)}`;
   const response = await axios.get(url);
-  return response.data;
+  const packageData = response.data;
+
+  let authorName: string | undefined = undefined;
+  if (packageData.author) {
+    if (typeof packageData.author === 'string') {
+      // Attempt to parse username from "Name <email> (url)" format or just use the string
+      const match = packageData.author.match(/^([^<(\s]+)/);
+      authorName = match ? match[0] : packageData.author;
+    } else if (typeof packageData.author === 'object' && packageData.author.name) {
+      authorName = packageData.author.name;
+    }
+  }
+
+  // If author field is not present, try to get it from maintainers field
+  if (!authorName && packageData.maintainers && packageData.maintainers.length > 0) {
+    // Taking the first maintainer's name as a fallback
+    // Ensure maintainer.name is a string, as it can sometimes be an object (though less common for name)
+    if (packageData.maintainers[0] && typeof packageData.maintainers[0].name === 'string') {
+      authorName = packageData.maintainers[0].name;
+    }
+  }
+  
+  return { ...packageData, authorName };
 };
 
 /**
@@ -61,12 +83,15 @@ const fetchNpmPluginsByTag = async (tag: string): Promise<Partial<PluginData>[]>
     }
 
     const pluginDataList = await Promise.all(
-      packages.map((pkg) => {
+      packages.map(async (pkg) => {
+        // Fetch detailed package metadata to get author information
+        const packageMeta = await fetchPackageMeta(pkg.package.name);
         return {
           id: pkg.package.name,
           name: pkg.package.name,
           description: pkg.package.description,
           packageUrl: pkg.package.links.npm,
+          authorName: packageMeta.authorName, // Add the authorName
         };
       })
     );
