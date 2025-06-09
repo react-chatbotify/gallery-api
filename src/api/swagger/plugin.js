@@ -103,14 +103,18 @@ const pluginPaths = {
           content: {
             'application/json': {
               schema: { $ref: '#/components/schemas/ApiResult' },
+              default: '@rcb-plugins/llm-connector',
               example: {
                 success: true,
-                message: 'Plugin fetched successfully.',
+                message: 'Plugin data fetched successfully.',
                 data: {
-                  id: 'plugin-1',
-                  name: 'Example Plugin',
-                  description: 'A sample plugin.',
-                  version: '1.0.0',
+                  id: '@rcb-plugins/llm-connector',
+                  name: '@rcb-plugins/llm-connector',
+                  description:
+                    'A generic LLM connector for integrating Large Language Models (LLMs) in React ChatBotify!',
+                  favoritesCount: 0,
+                  packageUrl: 'https://www.npmjs.com/package/@rcb-plugins/llm-connector',
+                  status: 'SYNC',
                   createdAt: '2024-08-07T18:43:21.000Z',
                   updatedAt: '2024-08-07T18:43:21.000Z',
                 },
@@ -194,172 +198,6 @@ const pluginPaths = {
               example: {
                 success: false,
                 message: 'Failed to fetch plugin versions.',
-                data: null,
-                errors: [],
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-  '/api/v1/plugins/publish': {
-    post: {
-      tags: ['Plugins Module'],
-      summary: 'Publishes a new plugin.',
-      description: 'Publishes a new plugin or updates an existing one. Handles versioning and validation.',
-      requestBody: {
-        required: true,
-        content: {
-          'multipart/form-data': {
-            schema: {
-              type: 'object',
-              properties: {
-                pluginId: {
-                  type: 'string',
-                  description: 'The ID of the plugin being published.',
-                },
-                name: {
-                  type: 'string',
-                  description: 'The name of the plugin.',
-                },
-                description: {
-                  type: 'string',
-                  description: 'A brief description of the plugin.',
-                },
-                packageUrl: {
-                  type: 'string',
-                  description: 'Url to the published package.',
-                },
-                imgUrl: {
-                  type: 'string',
-                  format: 'binary',
-                  description: 'Image file for the plugin (e.g., a PNG logo).',
-                },
-              },
-            },
-          },
-        },
-      },
-      responses: {
-        201: {
-          description: 'Plugin published successfully.',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/ApiResult' },
-              example: {
-                success: true,
-                message: 'Plugin published successfully.',
-                data: {
-                  id: 'plugin-1',
-                  name: 'Example Plugin',
-                  version: '1.1.0',
-                },
-                errors: [],
-              },
-            },
-          },
-        },
-        400: {
-          description: 'Bad request due to validation failure.',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/ApiResult' },
-              example: {
-                success: false,
-                message: 'Validation failed.',
-                data: null,
-                errors: [],
-              },
-            },
-          },
-        },
-        500: {
-          description: 'Internal server error occurred while publishing the plugin.',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/ApiResult' },
-              example: {
-                success: false,
-                message: 'Failed to publish plugin.',
-                data: null,
-                errors: [],
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-  '/api/v1/plugins/unpublish': {
-    delete: {
-      tags: ['Plugins Module'],
-      summary: 'Unpublishes an existing plugin.',
-      description: 'Removes a plugin from publication.',
-      parameters: [
-        {
-          in: 'query',
-          name: 'pluginId',
-          schema: { type: 'string' },
-          required: true,
-          description: 'The ID of the plugin to unpublish.',
-        },
-      ],
-      responses: {
-        200: {
-          description: 'Plugin unpublished successfully.',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/ApiResult' },
-              example: {
-                success: true,
-                message: 'Plugin unpublished successfully.',
-                data: {
-                  id: 'plugin-1',
-                  name: 'Example Plugin',
-                  version: '1.1.0',
-                },
-                errors: [],
-              },
-            },
-          },
-        },
-        400: {
-          description: 'Feature not allowed or bad request.',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/ApiResult' },
-              example: {
-                success: false,
-                message: 'Bad request.',
-                data: null,
-                errors: [],
-              },
-            },
-          },
-        },
-        404: {
-          description: 'Plugin not found.',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/ApiResult' },
-              example: {
-                success: false,
-                message: 'Plugin not found.',
-                data: null,
-                errors: [],
-              },
-            },
-          },
-        },
-        500: {
-          description: 'Internal server error occurred while unpublishing the plugin.',
-          content: {
-            'application/json': {
-              schema: { $ref: '#/components/schemas/ApiResult' },
-              example: {
-                success: false,
-                message: 'Failed to unpublish plugin.',
                 data: null,
                 errors: [],
               },

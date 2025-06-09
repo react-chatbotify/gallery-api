@@ -1,14 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 
-import {
-  getPlugins,
-  getPluginsNoAuth,
-  getPluginById,
-  getPluginVersions,
-  publishPlugin,
-  unpublishPlugin,
-} from '../controllers/pluginController';
+import { getPlugins, getPluginsNoAuth, getPluginById, getPluginVersions } from '../controllers/pluginController';
 import checkUserSession from '../middleware/userSessionMiddleware';
 import { getUserData } from '../services/authentication/authentication';
 import { getFileExtension } from '../utils/fileUtils';
@@ -59,11 +52,5 @@ router.get('/:plugin_id', async (req, res) => {
 
 // retrieves plugin versions
 router.get('/versions', getPluginVersions);
-
-// publish plugin
-router.post('/publish', checkUserSession, upload.fields([{ name: 'imgUrl', maxCount: 1 }]), publishPlugin);
-
-// unpublish plugin
-router.delete('/unpublish', checkUserSession, unpublishPlugin);
 
 export default router;

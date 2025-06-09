@@ -4,9 +4,9 @@ interface PluginData {
   name: string;
   description: string;
   favoritesCount: number;
-  imageUrl: string;
   packageUrl: string;
   isFavorite?: boolean;
+  userId: string;
 }
 
 export { PluginData };

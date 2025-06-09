@@ -1,8 +1,5 @@
 import { Request, Response } from 'express';
-import * as crypto from 'crypto';
 
-import { checkIsAdminUser } from '../services/authorization';
-import { MINIO_URL, uploadBuffer } from '../services/minioService';
 import {
   getPluginDataFromCache,
   getPluginSearchFromCache,
@@ -11,15 +8,12 @@ import {
   savePluginSearchToCache,
   savePluginVersionsToCache,
 } from '../services/plugins/cacheService';
-import { addPluginDataToDb, deletePluginDataFromDb, getPluginDataFromDb } from '../services/plugins/dbService';
+import { getPluginDataFromDb } from '../services/plugins/dbService';
 import { getPluginVersionsFromNpm } from '../services/plugins/npmService';
 import { getUserFavoritePluginsFromCache, saveUserFavoritePluginsToCache } from '../services/users/cacheService';
 import { getUserFavoritePluginsFromDb } from '../services/users/dbService';
 import { sendErrorResponse, sendSuccessResponse } from '../utils/responseUtils';
-import { Plugin } from '../databases/sql/models';
 import Logger from '../logger';
-
-const maxFileSize = Number(process.env.MAX_PLUGIN_IMAGE_FILE_SIZE) || 1 * 1024 * 1024; // defaults to 1 MB if not set
 
 /**
  * Handles fetching of plugins when not logged in.
@@ -178,77 +172,4 @@ const getPluginVersions = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * Publishes a plugin.
- *
- * @param req request from call
- * @param res response to call
- *
- * @returns plugin information on success, 500 error otherwise
- */
-const publishPlugin = async (req: Request, res: Response) => {
-  const userData = req.userData;
-
-  // plugin information provided by the user
-  const { pluginId, name, description, packageUrl } = req.body;
-  const imgFile = (req.files as { [fieldname: string]: Express.Multer.File[] })['imgUrl'][0];
-
-  if (imgFile.size > maxFileSize) {
-    return sendErrorResponse(res, 400, 'Plugin image file size exceeds the 1 MB limit.');
-  }
-
-  const [fileName, extension] = imgFile.originalname.split('.');
-  const imgName = fileName + crypto.randomBytes(20).toString('hex') + '.' + extension;
-
-  try {
-    // todo: verify if image upload works
-    // save images to minio and generate image url for plugin before saving to db
-    await uploadBuffer('plugins-images', imgName, imgFile.buffer);
-    const imageUrl = `${MINIO_URL}/plugins-images/${imgName}`;
-    const plugin = await addPluginDataToDb(pluginId, name, description, imageUrl, packageUrl, userData.id);
-    sendSuccessResponse(res, 200, plugin, 'Plugin published successfully.');
-  } catch (error) {
-    Logger.error('Error publishing plugin.', error);
-    sendErrorResponse(res, 500, 'Failed to publish plugin, please try again.');
-  }
-};
-
-/**
- * Unpublishes an existing plugin.
- *
- * @param req request from call
- * @param res response to call
- *
- * @returns plugin information on success, 500 error otherwise
- */
-const unpublishPlugin = async (req: Request, res: Response) => {
-  const userData = req.userData;
-  const pluginId = req.query.pluginId as string;
-
-  // only admins can unpublish plugins
-  if (!checkIsAdminUser(userData)) {
-    return sendErrorResponse(res, 403, 'Unauthorized access.');
-  }
-
-  try {
-    const plugin = await Plugin.findOne({
-      where: {
-        id: pluginId,
-      },
-    });
-
-    // if plugin does not exist, cannot delete
-    if (!plugin) {
-      return sendErrorResponse(res, 404, 'Failed to unpulish plugin, the plugin does not exist.');
-    }
-
-    await deletePluginDataFromDb(pluginId);
-    // todo: delete image from minio as well
-    sendSuccessResponse(res, 200, plugin, 'Plugin unpublished successfully.');
-  } catch (error) {
-    Logger.error('Error unpublishing plugin.', error);
-    sendErrorResponse(res, 500, 'Failed to unpublish plugin, please try again.');
-  }
-};
-
-export { getPlugins, getPluginsNoAuth, getPluginById, getPluginVersions, publishPlugin, unpublishPlugin };
+export { getPlugins, getPluginsNoAuth, getPluginById, getPluginVersions };

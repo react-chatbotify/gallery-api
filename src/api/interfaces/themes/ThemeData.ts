@@ -6,6 +6,7 @@ interface ThemeData {
   favoritesCount: number;
   versionsCount: number;
   isFavorite?: boolean;
+  userId: string;
 }
 
 export { ThemeData };

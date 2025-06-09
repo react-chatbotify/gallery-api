@@ -76,7 +76,6 @@ const getPluginDataFromDb = async (
  * @param pluginId id of plugin (unique)
  * @param name name of plugin
  * @param description description of plugin
- * @param imageUrl image url to plugin icon
  * @param packageUrl package url to download plugin
  * @param userId id of user who owns the plugin
  *
@@ -86,7 +85,6 @@ const addPluginDataToDb = async (
   pluginId: string,
   name: string,
   description: string,
-  imageUrl: string,
   packageUrl: string,
   userId: string
 ) => {
@@ -94,7 +92,6 @@ const addPluginDataToDb = async (
     id: pluginId,
     name,
     description,
-    imageUrl,
     packageUrl,
     userId,
   });

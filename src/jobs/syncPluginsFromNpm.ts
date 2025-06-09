@@ -1,63 +1,7 @@
-import axios from 'axios';
 import Plugin from '../api/databases/sql/models/Plugin';
 import { sequelize } from '../api/databases/sql/sql';
 import Logger from '../api/logger';
-import { PluginData } from '../api/interfaces/plugins/PluginData';
-
-// todo: move into standalone interface
-interface NpmRegistrySearchResult {
-  objects: {
-    package: {
-      name: string;
-      description?: string;
-      links: {
-        npm: string;
-      };
-      version: string;
-    };
-  }[];
-}
-
-/**
- * Fetches npm packages tagged with the given keyword from the npm registry.
- *
- * @param tag - The npm keyword tag to filter packages by
- * @returns A list of PluginData objects for all matching packages
- */
-const fetchNpmPluginsByTag = async (tag: string): Promise<Partial<PluginData>[]> => {
-  const searchUrl = `https://registry.npmjs.org/-/v1/search?text=keywords:${tag}&size=250`;
-  try {
-    Logger.info(`Fetching plugins from npm with tag: ${tag} using URL: ${searchUrl}`);
-    const response = await axios.get<NpmRegistrySearchResult>(searchUrl);
-    const packages = response.data.objects;
-
-    if (!packages || packages.length === 0) {
-      Logger.info(`No packages found for tag ${tag}.`);
-      return [];
-    }
-
-    const pluginDataList = packages.map((pkg) => ({
-      id: pkg.package.name, // Using NPM package name as plugin ID
-      name: pkg.package.name,
-      description: pkg.package.description,
-      packageUrl: pkg.package.links.npm,
-      version: pkg.package.version,
-    }));
-
-    Logger.info(`Fetched ${pluginDataList.length} plugins for tag ${tag}.`);
-    return pluginDataList;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      Logger.error(`Error fetching plugins from npm for tag ${tag}: ${error.message}`, {
-        status: error.response?.status,
-        data: error.response?.data,
-      });
-    } else {
-      Logger.error(`An unexpected error occurred while fetching plugins from npm for tag ${tag}: ${error}`);
-    }
-    return []; // Return empty array on error
-  }
-};
+import { fetchNpmPluginsByTag } from '../api/services/plugins/npmService';
 
 /**
  * Runs job to synchronize plugins between the npm registry and the local database.
@@ -118,8 +62,6 @@ const runSyncPluginsFromNpm = async () => {
               name: npmPluginData.name,
               description: npmPluginData.description,
               packageUrl: npmPluginData.packageUrl,
-              // imageUrl and userId are not available from npm search directly, rely on model defaults or null
-              // favoritesCount defaults to 0 as per model definition
             },
             { transaction }
           );

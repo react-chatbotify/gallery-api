@@ -27,28 +27,28 @@ Plugin.init(
       defaultValue: 0,
       field: 'favorites_count',
     },
-    // image url of the plugin
-    imageUrl: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      field: 'image_url',
-    },
     // package url of the plugin
     packageUrl: {
       type: DataTypes.STRING,
       allowNull: false,
       field: 'package_url',
     },
+    status: {
+      type: DataTypes.ENUM,
+      values: ['SYNC', 'WHITELIST', 'BLACKLIST'],
+      defaultValue: 'SYNC',
+      allowNull: false,
+    },
     // date when the plugin is created
     createdAt: {
       type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
+      defaultValue: sequelize.literal('NOW()'),
       field: 'created_at',
     },
     // date when the plugin was last updated
     updatedAt: {
       type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
+      defaultValue: sequelize.literal('NOW()'),
       field: 'updated_at',
     },
     userId: {
