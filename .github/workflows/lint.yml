@@ -1,0 +1,57 @@
+name: Lint
+run-name: Lint
+
+permissions:
+  contents: read
+  actions: read
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: "Node.js version to use"
+        required: true
+        type: string
+      target_env:
+        description: 'The deployment environment e.g. production or development'
+        required: true
+        type: string
+      skip_deploy:
+        description: 'Skip the deploy step (true/false)'
+        required: true
+        type: boolean
+
+jobs:
+  lint:
+    name: Run Lint
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target_env }}
+
+    steps:
+      - name: Checkout code
+        # Checks out the repository code.
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (Latest)
+        # Sets up NodeJS environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Install Dependencies
+        # Installs dependencies
+        run: npm ci
+
+      - name: Run Linter
+        # Runs lint checks
+        run: npm run lint
+
+  trigger-deploy:
+    needs: lint
+    name: Deploy
+    if: ${{ inputs.skip_deploy == false }}
+    uses: ./.github/workflows/publish-and-deploy.yml
+    secrets: inherit
+    with:
+      target_env: ${{ inputs.target_env }}
+      target_tag: ${{ needs.build.outputs.target_tag }}

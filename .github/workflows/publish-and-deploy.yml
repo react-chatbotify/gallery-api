@@ -1,53 +1,20 @@
-name: Lint, Build & Publish
-run-name: Lint, Build & Publish
-
-permissions:
-  contents: read
-  actions: read
+name: Publish & Deploy
+run-name: Publish & Deploy
 
 on:
   workflow_call:
     inputs:
-      node-version:
-        description: "Node.js version to use"
+      target_tag:
         required: true
         type: string
+        description: 'The deployment target tag, e.g. prod-latest or dev-latest'
       target_env:
-        description: 'The deployment environment e.g. production or development'
         required: true
         type: string
-      skip_deploy:
-        description: 'Skip the deploy step (true/false)'
-        required: true
-        type: boolean
+        description: 'The deployment environment e.g. production or development'
 
 jobs:
-  lint:
-    name: Run Lint
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.target_env }}
-
-    steps:
-      - name: Checkout code
-        # Checks out the repository code.
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js (Latest)
-        # Sets up NodeJS environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ inputs.node-version }}
-
-      - name: Install Dependencies
-        # Installs dependencies
-        run: npm ci
-
-      - name: Run Linter
-        # Runs lint checks
-        run: npm run lint
-
-  build:
-    needs: lint
+  publish:
     name: Build Docker Images
     runs-on: ubuntu-latest
     environment: ${{ inputs.target_env }}
@@ -190,12 +157,73 @@ jobs:
 
           docker push $IMAGE
 
-  trigger-deploy:
-    needs: build
+  deploy:
+    needs: publish
     name: Deploy
-    if: ${{ inputs.skip_deploy == false }}
-    uses: ./.github/workflows/deploy.yml
-    secrets: inherit
-    with:
-      target_env: ${{ inputs.target_env }}
-      target_tag: ${{ needs.build.outputs.target_tag }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target_env }}
+    steps:
+      - name: Checkout code
+        # Checks out the repository code.
+        uses: actions/checkout@v4
+
+      - name: Set up SSH key
+        # Sets up the SSH key for the server.
+        run: |
+          # Create the .ssh directory if it doesn't exist.
+          mkdir -p ~/.ssh
+          # Write the SSH private key to file.
+          echo "${{ secrets.DEPLOYMENT_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          # Add the server to known_hosts to avoid authenticity prompts.
+          ssh-keyscan -H ${{ secrets.DEPLOYMENT_SERVER }} >> ~/.ssh/known_hosts
+
+      - name: Upload deployment files to server
+        # Creates project directory and uploads required files to server
+        run: |
+          # create env file
+          echo "${{ secrets.APPLICATION_ENV_FILE }}" > ./config/env/.env
+
+          # copy all config files over
+          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }} \
+          "mkdir -p /opt/rcb-deployments/${{ vars.PROJECT_NAME }}/config /opt/rcb-deployments/${{ vars.PROJECT_NAME }}/docker"
+
+          scp -r -o StrictHostKeyChecking=no ./config/* \
+          ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/config/
+
+          # copy compose files
+          scp -o StrictHostKeyChecking=no docker/docker-compose.yml ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/docker/docker-compose.yml
+          if [ "${{ inputs.target_tag }}" = "prod-latest" ]; then
+            scp -o StrictHostKeyChecking=no docker/docker-compose.prod.yml ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/docker/docker-compose.override.yml
+            scp -o StrictHostKeyChecking=no otel-config.yaml ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/otel-config.yaml
+          else
+            scp -o StrictHostKeyChecking=no docker/docker-compose.dev.yml ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/docker/docker-compose.override.yml
+          fi
+
+          # copy deploy script
+          scp -o StrictHostKeyChecking=no scripts/deploy.sh ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }}:/opt/rcb-deployments/${{ vars.PROJECT_NAME }}/deploy.sh
+          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }} "\
+            chmod +x /opt/rcb-deployments/${{ vars.PROJECT_NAME }}/deploy.sh"
+
+      - name: Deploy to VPS
+        # Deploys to VPS.
+        run: |
+          OWNER="${{ vars.GHCR_OWNER }}"
+          APPLICATION_API_IMAGE="ghcr.io/$OWNER/${{ github.event.repository.name }}-api:${{ inputs.target_tag }}"
+          APPLICATION_JOBS_IMAGE="ghcr.io/$OWNER/${{ github.event.repository.name }}-jobs:${{ inputs.target_tag }}"
+          echo "Deploying to VPS..."
+          ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOYMENT_SSH_USER }}@${{ secrets.DEPLOYMENT_SERVER }} "\
+
+            # exports general variables
+            export PROJECT_NAME='${{ vars.PROJECT_NAME }}' && \
+            export GHCR_USER='${{ secrets.MACHINE_USER }}' && \
+            export GHCR_PAT='${{ secrets.MACHINE_PAT }}' && \
+            export APPLICATION_API_IMAGE='$APPLICATION_API_IMAGE' && \
+            export APPLICATION_JOBS_IMAGE='$APPLICATION_JOBS_IMAGE' && \
+
+            # applies only to production for logging
+            export HONEYCOMB_API_KEY='${{ secrets.HONEYCOMB_API_KEY }}' && \
+            export HONEYCOMB_DATASET='${{ secrets.HONEYCOMB_DATASET }}' && \
+
+            # runs deploy script
+            /opt/rcb-deployments/${{ vars.PROJECT_NAME }}/deploy.sh"
