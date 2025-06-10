@@ -20,9 +20,69 @@ import swaggerDocument from './swagger';
 import Logger from './logger';
 import { csrfMiddleware } from './middleware/csrfMiddleware';
 import { Request, Response, NextFunction } from 'express';
+import { logs as apiLogs } from '@opentelemetry/api-logs';
+import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-grpc';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
+import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
+import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
+import { Resource } from '@opentelemetry/resources';
+import { BatchLogRecordProcessor, LoggerProvider } from '@opentelemetry/sdk-logs';
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-node';
+import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 
 // load env variables
 dotenv.config();
+
+// OpenTelemetry SDK Initialization
+
+// Shared Resource
+const resource = new Resource({
+  [ATTR_SERVICE_NAME]: process.env.OTEL_SERVICE_NAME || 'otel-collector',
+});
+
+// Trace Exporter
+const otelTraceExporter = new OTLPTraceExporter({
+  url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://otel-collector:4317',
+});
+
+// Log Exporter
+const otelLogExporter = new OTLPLogExporter({
+  url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://otel-collector:4317',
+});
+
+// Logger Provider
+const loggerProvider = new LoggerProvider({ resource });
+loggerProvider.addLogRecordProcessor(new BatchLogRecordProcessor(otelLogExporter));
+
+// Set global logger provider (important for Winston transport and other integrations)
+apiLogs.setGlobalLoggerProvider(loggerProvider);
+
+const sdk = new NodeSDK({
+  // loggerProvider: loggerProvider, // loggerProvider is not a direct NodeSDK option in this version
+  instrumentations: [new HttpInstrumentation(), new ExpressInstrumentation()],
+
+  resource: resource,
+
+  // Use the shared resource
+  spanProcessor: new BatchSpanProcessor(otelTraceExporter),
+});
+
+try {
+  sdk.start();
+  Logger.info('OpenTelemetry SDK (traces and logs) started successfully.');
+} catch (error) {
+  Logger.error('Error starting OpenTelemetry SDK:', { error });
+}
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  sdk
+    .shutdown()
+    .then(() => Logger.info('OpenTelemetry SDK shut down successfully.'))
+    .catch((error) => Logger.error('Error shutting down OpenTelemetry SDK:', { error }))
+    .finally(() => process.exit(0));
+});
 
 // enable express session debugging if not in prod
 if (process.env.NODE_ENV !== 'production') {

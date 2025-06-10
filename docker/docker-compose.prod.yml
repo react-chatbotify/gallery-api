@@ -17,14 +17,12 @@ services:
   # add logging in production environment
   otel-collector:
     image: otel/opentelemetry-collector:latest
-    container_name: rcb-discord-bot-otel-collector
+    container_name: rcb-gallery-api-otel-collector
     environment:
       HONEYCOMB_API_KEY: ${HONEYCOMB_API_KEY}
       HONEYCOMB_DATASET: ${HONEYCOMB_DATASET}
     volumes:
-      - ./otel-config.yaml:/etc/otel/config.yaml:ro
+      - ../otel-config.yaml:/etc/otel/config.yaml:ro
     command: ["--config", "/etc/otel/config.yaml"]
-    ports:
-      - "4317:4317"
     networks:
       - core-network
