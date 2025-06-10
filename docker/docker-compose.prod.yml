@@ -27,4 +27,4 @@ services:
     ports:
       - "4317:4317"
     networks:
-      - app-network
+      - core-network
