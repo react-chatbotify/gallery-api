@@ -15,6 +15,7 @@ import themeRoutes from './routes/themeRoutes';
 import userRoutes from './routes/userRoutes';
 import pluginRoutes from './routes/pluginRoutes';
 import projectRoutes from './routes/projectRoutes';
+import healthRoutes from './routes/healthRoutes'; // Import health check route
 import { setUpMinioBucket } from './services/minioService';
 import swaggerDocument from './swagger';
 import Logger from './logger';
@@ -154,6 +155,7 @@ app.use(`${API_PREFIX}/themes`, themeRoutes);
 app.use(`${API_PREFIX}/users`, userRoutes);
 app.use(`${API_PREFIX}/plugins`, pluginRoutes);
 app.use(`${API_PREFIX}/projects`, projectRoutes);
+app.use(`${API_PREFIX}/health`, healthRoutes); // Register health check route
 
 // load the swagger docs only if not in production
 if (process.env.NODE_ENV !== 'production') {
@@ -200,6 +202,25 @@ if (process.env.NODE_ENV !== 'production') {
 
 // start server, default to port 3000 if not specified
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => { // Assign server to a variable
   Logger.info(`Server is running on port ${PORT}`);
+});
+
+// Simulate healthchecks.io ping
+const healthCheckInterval = setInterval(() => {
+  Logger.info('Simulating sending ping to healthchecks.io');
+}, 5 * 60 * 1000); // 5 minutes
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  Logger.info('SIGTERM signal received: closing HTTP server');
+  clearInterval(healthCheckInterval); // Clear the interval
+  server.close(() => {
+    Logger.info('HTTP server closed');
+    sdk
+      .shutdown()
+      .then(() => Logger.info('OpenTelemetry SDK shut down successfully.'))
+      .catch((error) => Logger.error('Error shutting down OpenTelemetry SDK:', { error }))
+      .finally(() => process.exit(0));
+  });
 });

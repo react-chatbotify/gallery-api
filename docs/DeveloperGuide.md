@@ -210,7 +210,24 @@ The entire process of creating pull requests and merging them is automated via a
 
 ### Healthchecks
 
-Healthchecks is currently unimplemented but is an important component for providing alerts if systems go down. Periodically, the API services should send a request to indicate their liveness. We can use [**healthchecks.io**](https://healthchecks.io) for that. This should be relatively simple to implement.
+The application includes a health check endpoint to monitor its status and availability. This is crucial for ensuring the system is operational and for integrating with external monitoring services.
+
+#### Health Check Endpoint
+
+*   **Endpoint:** `/api/v1/health/healthz` (Note: `v1` might vary depending on the `API_VERSION` environment variable)
+*   **Method:** `GET`
+*   **Response:**
+    *   **Status Code:** `200 OK`
+    *   **Body:** `{"status": "healthy"}`
+
+This endpoint can be polled by monitoring systems to verify that the API is running correctly. A `200 OK` response with the specified JSON body indicates that the service is healthy.
+
+#### Simulated healthchecks.io Integration
+
+While direct integration with an external service like [**healthchecks.io**](https://healthchecks.io) is planned for the future, the current implementation includes a simulation of this process.
+Every 5 minutes, the API service logs a message to the console: `"Simulating sending ping to healthchecks.io"`. This serves as a placeholder and a reminder of the intended periodic communication with an external health monitoring service. This interval is cleared when the application shuts down gracefully.
+
+This setup allows for basic internal health monitoring and lays the groundwork for a more robust external health checking mechanism.
 
 ## Project Management
 
