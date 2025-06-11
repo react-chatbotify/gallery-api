@@ -202,14 +202,18 @@ if (process.env.NODE_ENV !== 'production') {
 
 // start server, default to port 3000 if not specified
 const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, () => { // Assign server to a variable
+const server = app.listen(PORT, () => {
+  // Assign server to a variable
   Logger.info(`Server is running on port ${PORT}`);
 });
 
 // Simulate healthchecks.io ping
-const healthCheckInterval = setInterval(() => {
-  Logger.info('Simulating sending ping to healthchecks.io');
-}, 5 * 60 * 1000); // 5 minutes
+const healthCheckInterval = setInterval(
+  () => {
+    Logger.info('Simulating sending ping to healthchecks.io');
+  },
+  5 * 60 * 1000
+); // 5 minutes
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
