@@ -1,5 +1,5 @@
-name: Lint
-run-name: Lint
+name: Lint & Test
+run-name: Lint & Test
 
 permissions:
   contents: read
@@ -46,8 +46,33 @@ jobs:
         # Runs lint checks
         run: npm run lint
 
-  trigger-deploy:
+  test:
     needs: lint
+    name: Run Tests
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.target_env }}
+
+    steps:
+      - name: Checkout code
+        # Checks out the repository code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ inputs.node-version }}
+        # Sets up NodeJS environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Install Dependencies
+        # Installs dependencies
+        run: npm ci
+
+      - name: Run Tests
+        # Runs test cases
+        run: npm run test
+
+  trigger-deploy:
+    needs: test
     name: Publish & Deploy
     if: ${{ inputs.skip_deploy == false }}
     uses: ./.github/workflows/publish-and-deploy.yml

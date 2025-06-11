@@ -37,7 +37,7 @@ jobs:
   trigger-full-ci:
     # Triggers the full CI/CD pipeline.
     name: CI
-    uses: ./.github/workflows/lint.yml
+    uses: ./.github/workflows/lint-and-test.yml
     secrets: inherit
     with:
       target_env: ${{ github.ref == 'refs/heads/main' && 'production' || github.ref == 'refs/heads/development' && 'development' || 'invalid' }}
