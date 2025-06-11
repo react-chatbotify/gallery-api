@@ -102,7 +102,7 @@ jobs:
           package-name: ${{ github.event.repository.name }}-api
           package-type: container
           owner: ${{ github.repository_owner }}
-          min-versions-to-keep: 2 # Keeps the 2 most recent versions (latest and previous)
+          ignore-versions: "^(prod-latest|prod-previous|dev-latest|dev-previous)$" # keeps important tags (latest and previous)
           token: ${{ secrets.MACHINE_PAT }}
 
       - name: Cleanup Old Jobs Image Digests
@@ -114,7 +114,7 @@ jobs:
           package-name: ${{ github.event.repository.name }}-jobs
           package-type: container
           owner: ${{ github.repository_owner }}
-          min-versions-to-keep: 2 # Keeps the 2 most recent versions (latest and previous)
+          ignore-versions: "^(prod-latest|prod-previous|dev-latest|dev-previous)$" # keeps important tags (latest and previous)
           token: ${{ secrets.MACHINE_PAT }}
 
       - name: Build & push API image
