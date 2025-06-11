@@ -22,8 +22,6 @@ jobs:
       - name: Checkout code
         # Checks out the repository code.
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2 
 
       - name: Set up Docker Buildx
         # Prepares Docker Buildx for building multi-platform images.
@@ -56,9 +54,8 @@ jobs:
       - name: Detect changed paths
         id: changes
         uses: dorny/paths-filter@v3
+        # todo: find a way to detect changes within same branch, for now do not push to dev/prod in parallel
         with:
-          base: HEAD^
-          ref: HEAD
           filters: |
             api:
               - 'src/api/**'

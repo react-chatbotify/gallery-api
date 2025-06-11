@@ -8,6 +8,7 @@ const app = express();
 const API_PREFIX = `/api/${process.env.API_VERSION || 'v1'}`;
 app.use(`${API_PREFIX}/health`, healthRoutes);
 
+// Extend test timeout if necessary
 describe('Health Check API', () => {
   it('should return 200 and healthy status for /healthz', async () => {
     const response = await request(app).get(`${API_PREFIX}/health/healthz`);
