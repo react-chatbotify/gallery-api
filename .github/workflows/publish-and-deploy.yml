@@ -55,6 +55,8 @@ jobs:
         id: changes
         uses: dorny/paths-filter@v3
         with:
+          base: HEAD^
+          ref: HEAD
           filters: |
             api:
               - 'src/api/**'
