@@ -51,20 +51,8 @@ jobs:
             exit 1
           fi
 
-      - name: Detect changed paths
-        id: changes
-        uses: dorny/paths-filter@v3
-        # todo: find a way to detect changes within same branch, for now do not push to dev/prod in parallel
-        with:
-          filters: |
-            api:
-              - 'src/api/**'
-            jobs:
-              - 'src/jobs/**'
-
       - name: Backup existing API image
         # Pulls the current image using the target tag and backup it with a previous tag if it exists.
-        if: steps.changes.outputs.api == 'true'
         run: |
           OWNER="${{ github.repository_owner }}"
           BASE="${{ github.event.repository.name }}-api"
@@ -80,7 +68,6 @@ jobs:
 
       - name: Backup existing Jobs image
         # Pulls the current image using the target tag and backup it with a previous tag if it exists.
-        if: steps.changes.outputs.jobs == 'true'
         run: |
           OWNER="${{ github.repository_owner }}"
           BASE="${{ github.event.repository.name }}-jobs"
@@ -96,7 +83,6 @@ jobs:
 
       - name: Cleanup Old API Image Digests
         # Cleans up old api images
-        if: steps.changes.outputs.api == 'true'
         uses: actions/delete-package-versions@v5
         continue-on-error: true
         with:
@@ -108,7 +94,6 @@ jobs:
 
       - name: Cleanup Old Jobs Image Digests
         # Cleans up old jobs images
-        if: steps.changes.outputs.jobs == 'true'
         uses: actions/delete-package-versions@v5
         continue-on-error: true
         with:
@@ -120,7 +105,6 @@ jobs:
 
       - name: Build & push API image
         # Builds a new Docker image with the target tag and pushes it to GHCR.
-        if: steps.changes.outputs.api == 'true'
         run: |
           OWNER=${{ github.repository_owner }}
           BASE=${{ github.event.repository.name }}-api
@@ -138,7 +122,6 @@ jobs:
 
       - name: Build & push Jobs image
         # Builds a new Docker image with the target tag and pushes it to GHCR.
-        if: steps.changes.outputs.jobs == 'true'
         run: |
           OWNER=${{ github.repository_owner }}
           BASE=${{ github.event.repository.name }}-jobs
