@@ -3,7 +3,7 @@
 services:
   # first instance of the api server
   api1:
-    container_name: api-1
+    container_name: gallery-api-core-1
     env_file:
       - ../config/env/.env
     environment:
@@ -23,7 +23,7 @@ services:
 
   # second instance of the api server
   api2:
-    container_name: api-2
+    container_name: gallery-api-core-2
     env_file:
       - ../config/env/.env
     environment:
