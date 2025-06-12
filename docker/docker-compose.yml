@@ -68,7 +68,11 @@ services:
       - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
     command: [ "redis-server", "/usr/local/etc/redis/redis.conf" ]
     healthcheck:
-      test: "exit 0"
+      test: ["CMD", "redis-cli", "-h", "localhost", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
 
   redis-ephemeral:
     container_name: redis-ephemeral
@@ -78,7 +82,11 @@ services:
     networks:
       - core-network
     healthcheck:
-      test: "exit 0"
+      test: ["CMD", "redis-cli", "-h", "localhost", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
 
   # used to persist user/themes data
   mysql:
