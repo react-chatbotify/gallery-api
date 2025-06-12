@@ -58,10 +58,12 @@ const getUserData = async (sessionId: string, userId: string | null, provider: s
   // if user data is still in cache, parse and return
   try {
     const cachedUserData = await redisEphemeralClient.get(`${process.env.USER_DATA_PREFIX}:${sessionId}`);
+    Logger.debug(`getUserData: sessionID: ${sessionId}, cachedUserData found: ${!!cachedUserData}`);
     if (cachedUserData) {
       return JSON.parse(cachedUserData);
     }
-  } catch {
+  } catch (error) {
+    Logger.warn(`getUserData: sessionID: ${sessionId}, failed to get cachedUserData from Redis. Error: `, error);
     // if cannot get from cache, then below we try to get user data from provider again
   }
 
@@ -73,7 +75,9 @@ const getUserData = async (sessionId: string, userId: string | null, provider: s
   // if user data not in cache, then try to fetch data from the provider with access token
   try {
     const encryptedToken = await redisEphemeralClient.get(`${process.env.USER_TOKEN_PREFIX as string}:${sessionId}`);
+    Logger.debug(`getUserData: sessionID: ${sessionId}, encryptedToken found: ${!!encryptedToken}`);
     const accessToken = encryptedToken ? decrypt(encryptedToken) : null;
+    Logger.debug(`getUserData: sessionID: ${sessionId}, attempting to call getUserProviderDataFromProvider. AccessToken is null: ${!accessToken}`);
     const userProviderData = await getUserProviderDataFromProvider(sessionId, userId, accessToken, provider);
     if (userProviderData) {
       // get user data, will create user if user does not exist
@@ -99,7 +103,8 @@ const getUserData = async (sessionId: string, userId: string | null, provider: s
       return userData;
     }
     return null;
-  } catch {
+  } catch (error) {
+    Logger.error(`getUserData: sessionID: ${sessionId}, error during main data retrieval/refresh. Error: `, error);
     return null;
   }
 };
@@ -213,6 +218,7 @@ const getUserProviderDataFromProvider = async (
   provider: string
 ) => {
   if (!accessToken) {
+    Logger.debug(`getUserProviderDataFromProvider: sessionID: ${sessionId}, accessToken is null, attempting to call refreshProviderTokens.`);
     const tokenResponse = await refreshProviderTokens(sessionId, userId, provider);
     accessToken = tokenResponse ? tokenResponse.accessToken : null;
   }
@@ -278,7 +284,9 @@ const refreshProviderTokens = async (sessionId: string, userId: string | null, p
 
     // save user tokens if response is valid
     if (tokenResponse) {
-      if (await saveUserTokens(sessionId, userId, tokenResponse)) {
+      const successfullySavedTokens = await saveUserTokens(sessionId, userId, tokenResponse);
+      Logger.debug(`refreshProviderTokens: sessionID: ${sessionId}, successfullySavedTokens: ${successfullySavedTokens}`);
+      if (successfullySavedTokens) {
         return tokenResponse;
       }
     }
@@ -286,7 +294,7 @@ const refreshProviderTokens = async (sessionId: string, userId: string | null, p
     // if unable to save a valid token response, return null
     return null;
   } catch (error) {
-    Logger.error('Error during token refresh:', error);
+    Logger.error(`refreshProviderTokens: sessionID: ${sessionId}, error during token refresh. Error: `, error);
     return null;
   }
 };
