@@ -34,11 +34,13 @@ const runSyncPluginsFromNpm = async () => {
 
     // Identify plugins to delete (present in DB but not in the latest npm list for the tag)
     const pluginsToDelete: string[] = [];
-    for (const dbPluginId of dbPluginMap.keys()) {
-      if (!npmPluginMap.has(dbPluginId)) {
-        pluginsToDelete.push(dbPluginId);
-      }
-    }
+
+    // todo: revisit plugin deletion logic
+    // for (const dbPluginId of dbPluginMap.keys()) {
+    //   if (!npmPluginMap.has(dbPluginId)) {
+    //     pluginsToDelete.push(dbPluginId);
+    //   }
+    // }
 
     if (pluginsToDelete.length > 0) {
       await Plugin.destroy({
