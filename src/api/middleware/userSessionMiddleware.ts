@@ -13,7 +13,9 @@ import { getUserData } from '../services/authentication/authentication';
  * @returns 403 if session not found, else proceed
  */
 const checkUserSession = (req: Request, res: Response, next: NextFunction) => {
-  Logger.debug(`checkUserSession: sessionID: ${req.sessionID}, sessionUserID: ${req.session?.userId}, sessionProvider: ${req.session?.provider}`);
+  Logger.debug(
+    `checkUserSession: sessionID: ${req.sessionID}, sessionUserID: ${req.session?.userId}, sessionProvider: ${req.session?.provider}`
+  );
   getUserData(req.sessionID, req.session.userId || null, req.session.provider as string)
     .then((userData) => {
       if (!userData) {

@@ -77,7 +77,9 @@ const getUserData = async (sessionId: string, userId: string | null, provider: s
     const encryptedToken = await redisEphemeralClient.get(`${process.env.USER_TOKEN_PREFIX as string}:${sessionId}`);
     Logger.debug(`getUserData: sessionID: ${sessionId}, encryptedToken found: ${!!encryptedToken}`);
     const accessToken = encryptedToken ? decrypt(encryptedToken) : null;
-    Logger.debug(`getUserData: sessionID: ${sessionId}, attempting to call getUserProviderDataFromProvider. AccessToken is null: ${!accessToken}`);
+    Logger.debug(
+      `getUserData: sessionID: ${sessionId}, attempting to call getUserProviderDataFromProvider. AccessToken is null: ${!accessToken}`
+    );
     const userProviderData = await getUserProviderDataFromProvider(sessionId, userId, accessToken, provider);
     if (userProviderData) {
       // get user data, will create user if user does not exist
@@ -218,7 +220,9 @@ const getUserProviderDataFromProvider = async (
   provider: string
 ) => {
   if (!accessToken) {
-    Logger.debug(`getUserProviderDataFromProvider: sessionID: ${sessionId}, accessToken is null, attempting to call refreshProviderTokens.`);
+    Logger.debug(
+      `getUserProviderDataFromProvider: sessionID: ${sessionId}, accessToken is null, attempting to call refreshProviderTokens.`
+    );
     const tokenResponse = await refreshProviderTokens(sessionId, userId, provider);
     accessToken = tokenResponse ? tokenResponse.accessToken : null;
   }
@@ -285,7 +289,9 @@ const refreshProviderTokens = async (sessionId: string, userId: string | null, p
     // save user tokens if response is valid
     if (tokenResponse) {
       const successfullySavedTokens = await saveUserTokens(sessionId, userId, tokenResponse);
-      Logger.debug(`refreshProviderTokens: sessionID: ${sessionId}, successfullySavedTokens: ${successfullySavedTokens}`);
+      Logger.debug(
+        `refreshProviderTokens: sessionID: ${sessionId}, successfullySavedTokens: ${successfullySavedTokens}`
+      );
       if (successfullySavedTokens) {
         return tokenResponse;
       }
