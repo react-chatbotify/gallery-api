@@ -42,7 +42,7 @@ const handleCallback = (req: Request, res: Response) => {
     .map((url) => url.trim())
     .filter((url) => url.length > 0);
 
-  let frontendBaseUrl = allowedFrontendUrls[0]
+  const frontendBaseUrl = allowedFrontendUrls[0];
 
   if (!frontendBaseUrl) {
     // This is a server misconfiguration or critical error if no allowed URLs are configured.
