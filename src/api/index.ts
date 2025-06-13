@@ -137,8 +137,6 @@ app.use(
       secure: process.env.NODE_ENV !== 'local',
       // in production, use "lax" as frontend and backend have the same root domain
       sameSite: process.env.NODE_ENV === 'local' ? 'none' : 'lax',
-      // if not in production, leave domain as undefined
-      domain: process.env.NODE_ENV === 'local' ? undefined : process.env.COOKIE_DOMAIN,
       // expire after 3 months (milliseconds)
       maxAge: 1000 * 60 * 60 * 24 * 30 * 3,
     },
