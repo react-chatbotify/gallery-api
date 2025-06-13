@@ -10,8 +10,10 @@ const csrfMiddleware: RequestHandler = (req, res, next) => {
     if (!req.session.csrfToken) {
       req.session.csrfToken = tokens.secretSync();
     }
+
     // send token to client (either as a cookie or in locals for your /csrf-token endpoint)
-    res.cookie('XSRF-TOKEN', tokens.create(req.session.csrfToken), {
+    const cookieName = process.env.CSRF_TOKEN_IDENTIFIER || 'XSRF-TOKEN';
+    res.cookie(cookieName, tokens.create(req.session.csrfToken), {
       // false so client-side can read it
       httpOnly: false,
       // if developing locally, set to insecure
