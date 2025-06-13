@@ -39,7 +39,7 @@ dotenv.config();
 
 // Shared Resource
 const resource = new Resource({
-  [ATTR_SERVICE_NAME]: process.env.OTEL_SERVICE_NAME || 'otel-collector',
+  [ATTR_SERVICE_NAME]: process.env.OTEL_SERVICE_NAME || 'rcb-gallery-api',
 });
 
 // Trace Exporter
