@@ -20,6 +20,7 @@ const csrfMiddleware: RequestHandler = (req, res, next) => {
       secure: process.env.NODE_ENV !== 'local',
       // in production, use "lax" as frontend and backend have the same root domain
       sameSite: process.env.NODE_ENV === 'local' ? 'none' : 'lax',
+      domain: '.react-chatbotify.com',
     });
     return next();
   }

@@ -127,6 +127,7 @@ app.set('trust proxy', true);
 // handles user session
 app.use(
   session({
+    name: process.env.SESSION_NAME || 'connect.sid',
     store: redisSessionStore,
     secret: process.env.SESSION_SECRET as string,
     resave: false,
