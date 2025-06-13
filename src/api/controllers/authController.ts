@@ -37,30 +37,17 @@ const handleCallback = (req: Request, res: Response) => {
     }
   }
 
-  // The rest of the validation for redirect_url for other error types or success.
-  // This redirect_url is specific to the application's own flow, not the OAuth callback itself initially.
-  const receivedRedirectUrl = req.session.postLoginRedirectUrl;
-  delete req.session.postLoginRedirectUrl;
   const allowedFrontendUrls = (process.env.FRONTEND_WEBSITE_URLS || '')
     .split(',')
     .map((url) => url.trim())
     .filter((url) => url.length > 0);
 
-  let frontendBaseUrl: string;
+  let frontendBaseUrl = allowedFrontendUrls[0]
 
-  if (receivedRedirectUrl && allowedFrontendUrls.includes(receivedRedirectUrl)) {
-    frontendBaseUrl = receivedRedirectUrl;
-  } else {
-    Logger.warn(
-      `Invalid or missing redirect_url: '${receivedRedirectUrl}'. Allowed: ${allowedFrontendUrls.join(', ')}`
-    );
-    if (allowedFrontendUrls.length > 0) {
-      frontendBaseUrl = allowedFrontendUrls[0]; // Default to the first allowed URL
-    } else {
-      // This is a server misconfiguration or critical error if no allowed URLs are configured.
-      Logger.error('CRITICAL: No FRONTEND_WEBSITE_URLS configured for redirection.');
-      return sendErrorResponse(res, 400, 'Invalid redirect URL specified or application misconfigured.');
-    }
+  if (!frontendBaseUrl) {
+    // This is a server misconfiguration or critical error if no allowed URLs are configured.
+    Logger.error('CRITICAL: No FRONTEND_WEBSITE_URLS configured for redirection.');
+    return sendErrorResponse(res, 400, 'Invalid redirect URL specified or application misconfigured.');
   }
 
   // Handle cases where the provider indicates an error (e.g., user denied access)
@@ -172,11 +159,6 @@ const handleLogout = (req: Request, res: Response) => {
  * @returns github authorization url
  */
 const handleGitHubLogin = (req: Request, res: Response) => {
-  const redirectAfter = req.query.redirect_after as string | undefined;
-  if (redirectAfter) {
-    req.session.postLoginRedirectUrl = redirectAfter;
-  }
-
   // generate a random state
   const state = randomBytes(16).toString('hex');
   req.session.oAuthState = state;
