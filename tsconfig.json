@@ -21,7 +21,7 @@
   "include": [
     "src/**/*",
     "types"
-  ],
+, "__tests__/api/controllers/healthController.test.ts"  ],
   "exclude": [
     "node_modules"
   ],
