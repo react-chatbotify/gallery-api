@@ -1,6 +1,6 @@
 import request from 'supertest';
 import express from 'express';
-import healthRoutes from '../routes/healthRoutes'; // Adjust the path as necessary
+import healthRoutes from '../../../src/api/routes/healthRoutes'; // Adjust the path as necessary
 
 // Create a new express app for testing
 const app = express();
