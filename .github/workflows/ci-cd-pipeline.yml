@@ -42,9 +42,8 @@ jobs:
     uses: ./.github/workflows/lint-and-test.yml
     secrets: inherit
     with:
-      target_env: ${{ 
-        (github.ref == 'refs/heads/main' || github.base_ref == 'main') && 'production' ||
-        (github.ref == 'refs/heads/development' || github.base_ref == 'development') && 'development'
-      }}
+      target_env: >-
+        ${{ (github.ref == 'refs/heads/main' || github.base_ref == 'main') && 'production'
+            || (github.ref == 'refs/heads/development' || github.base_ref == 'development') && 'development' }}
       node-version: "22.4.1"
       skip_deploy: ${{ github.event_name == 'pull_request' }} # skip deployment if it's a pull request
