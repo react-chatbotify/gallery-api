@@ -18,6 +18,7 @@ on:
       - ".github/FUNDING.yml"
       - ".eslintrc"
       - ".gitignore"
+      - "__tests__/**"
   pull_request:
     # Triggers on pull requests to main/development branches.
     branches: ["main", "development"]
@@ -30,6 +31,7 @@ on:
       - ".github/FUNDING.yml"
       - ".eslintrc"
       - ".gitignore"
+      - "__tests__/**"
   workflow_dispatch:
     # Allows manual triggering of the workflow.
 
@@ -40,6 +42,9 @@ jobs:
     uses: ./.github/workflows/lint-and-test.yml
     secrets: inherit
     with:
-      target_env: ${{ github.ref == 'refs/heads/main' && 'production' || github.ref == 'refs/heads/development' && 'development' || 'invalid' }}
+      target_env: ${{ 
+        (github.ref == 'refs/heads/main' || github.base_ref == 'main') && 'production' ||
+        (github.ref == 'refs/heads/development' || github.base_ref == 'development') && 'development'
+      }}
       node-version: "22.4.1"
       skip_deploy: ${{ github.event_name == 'pull_request' }} # skip deployment if it's a pull request
